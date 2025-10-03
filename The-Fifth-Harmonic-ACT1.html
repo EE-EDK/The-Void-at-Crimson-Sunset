@@ -1277,5 +1277,57 @@
             observer.observe(el);
         });
     </script>
+    <style>
+    /* This class will be added to the body to trigger the fade-out effect */
+    body.fade-out-to-next {
+        transition: opacity 1.5s ease-in-out;
+        opacity: 0;
+    }
+</style>
+
+<script>
+    (() => {
+        // A variable to hold the timer, so we can cancel it if needed
+        let endOfPageTimer = null;
+        // A flag to ensure the timer is only set once
+        let isTimerSet = false;
+        // The URL for the next page (ACT II)
+        const nextActUrl = 'The-First-Weave-ACTII.html';
+
+        // This function checks if the user has scrolled to the bottom
+        function checkScrollPosition() {
+            
+            // Check if the user's viewport is at the bottom of the page.
+            // (The '5' is a small pixel buffer to make it trigger reliably)
+            const isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 5;
+
+            if (isAtBottom && !isTimerSet) {
+                // If we are at the bottom and the timer isn't set yet, start it.
+                isTimerSet = true;
+                
+                // Set a 10-second timer (10000 milliseconds)
+                endOfPageTimer = setTimeout(() => {
+                    // After 10 seconds, add the fade-out class to the body
+                    document.body.classList.add('fade-out-to-next');
+
+                    // Set another timer to redirect *after* the fade animation is complete
+                    // The duration (1500ms) must match the CSS transition duration above
+                    setTimeout(() => {
+                        window.location.href = nextActUrl;
+                    }, 1500);
+
+                }, 10000); 
+
+            } else if (!isAtBottom && isTimerSet) {
+                // If the user scrolls back up, cancel the timer and reset the flag
+                clearTimeout(endOfPageTimer);
+                isTimerSet = false;
+            }
+        }
+
+        // Add an event listener that calls our function every time the user scrolls
+        window.addEventListener('scroll', checkScrollPosition);
+    })();
+</script>
 </body>
 </html>
