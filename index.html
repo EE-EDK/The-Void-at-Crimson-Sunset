@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Void at Crimson Sunset</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background-color: #000000;
+            color: #a2a2a2;
+            overflow: hidden; /* Prevent scrollbars from the canvas */
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 300;
+            color: #ffffff;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5), 0 0 20px rgba(255, 0, 0, 0.4);
+            animation: pulse 5s infinite ease-in-out;
+            margin-bottom: 2rem;
+        }
+
+        .acts-navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .act-link {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-weight: 400;
+            color: #8b0000;
+            text-decoration: none;
+            border: 1px solid #4d0000;
+            padding: 0.75rem 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .act-link:hover {
+            color: #ffffff;
+            background-color: #8b0000;
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), 0 0 25px rgba(255, 0, 0, 0.4);
+            transform: scale(1.05);
+        }
+
+        .act-link::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.6s ease;
+        }
+
+        .act-link:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255, 0, 0, 0.5), 0 0 20px rgba(255, 0, 0, 0.4);
+            }
+            50% {
+                text-shadow: 0 0 15px rgba(255, 50, 50, 0.7), 0 0 30px rgba(255, 50, 50, 0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <h1 class="title">The Void at Crimson Sunset</h1>
+        <nav class="acts-navigation">
+            <a href="./The-Fifth-Harmonic-ACT1.html" class="act-link">ACT I: The Fifth Harmonic</a>
+            <a href="./The-First-Weave-ACTII.html" class="act-link">ACT II: The First Weave</a>
+            <a href="./The-New-Rebirth-ACTIII.html" class="act-link">ACT III: The New Rebirth</a>
+        </nav>
+    </div>
+
+    <script>
+        // --- Three.js for background visuals ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 10;
+        
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const clock = new THREE.Clock();
+
+        // Visual 1: The Red Frequency (lines)
+        const frequencyLines = [];
+        for (let i = 0; i < 5; i++) {
+            const material = new THREE.LineBasicMaterial({ color: 0x8b0000, transparent: true, opacity: 0.3 });
+            const points = [];
+            for(let j = 0; j < 100; j++) {
+                points.push(new THREE.Vector3(-20 + j * 0.4, 0, 0));
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            line.position.set(0, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20);
+            line.userData.offset = Math.random() * 10;
+            scene.add(line);
+            frequencyLines.push(line);
+        }
+
+        // Visual 2: The Pattern/Weave (particles)
+        const particleCount = 2000;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 40;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+            
+            // Mix of red (Pattern) and blue (Weave) particles
+            const isRed = Math.random() > 0.3;
+            colors[i * 3] = isRed ? 1.0 : 0.2;
+            colors[i * 3 + 1] = 0.0;
+            colors[i * 3 + 2] = isRed ? 0.0 : 1.0;
+        }
+        const particleGeometry = new THREE.BufferGeometry();
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const particleMaterial = new THREE.PointsMaterial({ size: 0.05, vertexColors: true, transparent: true, opacity: 0.5 });
+        const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particleSystem);
+        
+        // Visual 3: The Holes (dark circles using sprites)
+        const holeMaterial = new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(generateHoleTexture()),
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.9
+        });
+        for (let i = 0; i < 10; i++) {
+            const hole = new THREE.Sprite(holeMaterial);
+            hole.position.set((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30 - 15);
+            const scale = 0.5 + Math.random() * 1.5;
+            hole.scale.set(scale, scale, scale);
+            scene.add(hole);
+        }
+
+        function generateHoleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(64, 64, 20, 64, 64, 64);
+            gradient.addColorStop(0, 'rgba(0,0,0,1)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 128, 128);
+            return canvas;
+        }
+
+        // Animate
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Animate frequency lines
+            frequencyLines.forEach(line => {
+                const positions = line.geometry.attributes.position.array;
+                for(let i = 0; i < positions.length / 3; i++) {
+                    positions[i * 3 + 1] = Math.sin(i * 0.5 + time * 2 + line.userData.offset) * 0.5;
+                }
+                line.geometry.attributes.position.needsUpdate = true;
+            });
+            
+            // Rotate particle system
+            particleSystem.rotation.y += delta * 0.02;
+            
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
