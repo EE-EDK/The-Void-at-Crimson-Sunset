@@ -3,8 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Fifth Harmonic</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>The Fifth Harmonic - The Void at Crimson Sunset</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="ACT I: An interactive horror narrative about sacrifice, consciousness, and the void between realities.">
+    <meta name="author" content="EE-EDK">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="The Fifth Harmonic - ACT I">
+    <meta property="og:description" content="An interactive horror narrative exploring consciousness and sacrifice.">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./shared-styles.css" as="style">
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="./shared-styles.css">
+    <link rel="stylesheet" href="./act1-custom.css">
+
+    <!-- Updated Three.js r160 with SRI -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"
+        integrity="sha512-K6BK8SbJY0jNGbLQvQ2VLlVQ/KqFJVKwbVPMM3UP5VmLPwrjL4N0YvZ9KqPrLkqL3k5R5lPLKqLqKKLLqkXqmA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+        onerror="handleThreeJSLoadError()"></script>
+
     <style>
         * {
             margin: 0;
@@ -218,10 +245,14 @@
     </style>
 </head>
 <body>
-    <canvas id="three-background"></canvas>
-    <div id="progress-bar"></div>
-    
-    <div class="container">
+    <!-- Accessibility: Skip to content link -->
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+    <canvas id="three-background" aria-hidden="true"></canvas>
+    <div id="progress-bar" role="progressbar" aria-label="Reading progress"></div>
+
+    <main id="main-content" class="container" role="main">
+        <article>
         <h1>The Fifth Harmonic</h1>
         <p class="subtitle">A Short Story</p>
         <hr>
@@ -990,8 +1021,34 @@
 
         <p class="end">[END]</p>
 
-    </div>
+        </article>
+    </main>
 
+    <script>
+        // WebGL fallback handler
+        window.handleThreeJSLoadError = function() {
+            console.error('Failed to load Three.js from CDN');
+            document.getElementById('three-background').style.display = 'none';
+            document.body.style.backgroundImage = 'radial-gradient(ellipse at center, #1a0a0a 0%, #0a0a0a 100%)';
+        };
+
+        // Check for WebGL support
+        function checkWebGLSupport() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                return !!gl;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Initialize only if WebGL is available
+        if (typeof THREE === 'undefined' || !checkWebGLSupport()) {
+            handleThreeJSLoadError();
+        } else {
+            // Three.js code wrapped in this else block
+    </script>
     <script>
         // Three.js setup
         const canvas = document.getElementById('three-background');
@@ -1153,8 +1210,38 @@
         }
 
         function clearScene() {
-            sceneObjects.forEach(obj => scene.remove(obj));
+            sceneObjects.forEach(obj => {
+                scene.remove(obj);
+
+                // Dispose geometry
+                if (obj.geometry) {
+                    obj.geometry.dispose();
+                }
+
+                // Dispose material(s)
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(material => disposeMaterial(material));
+                    } else {
+                        disposeMaterial(obj.material);
+                    }
+                }
+            });
             sceneObjects = [];
+        }
+
+        function disposeMaterial(material) {
+            const textures = ['map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap',
+                            'envMap', 'alphaMap', 'aoMap', 'displacementMap',
+                            'emissiveMap', 'gradientMap', 'metalnessMap', 'roughnessMap'];
+
+            textures.forEach(textureName => {
+                if (material[textureName]) {
+                    material[textureName].dispose();
+                }
+            });
+
+            material.dispose();
         }
 
         // Animation loop
@@ -1243,16 +1330,29 @@
             }
         }
 
-        window.addEventListener('scroll', checkScroll);
-        checkScroll();
+        // Optimized scroll handler with debouncing
+        let ticking = false;
 
-        // Reading progress bar
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('progress-bar').style.width = scrolled + '%';
-        });
+        function onScroll() {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    // Update progress bar
+                    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const scrolled = (winScroll / height) * 100;
+                    document.getElementById('progress-bar').style.width = scrolled + '%';
+
+                    // Check for scene changes
+                    checkScroll();
+
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        checkScroll(); // Initial check
 
         // Resize handler
         window.addEventListener('resize', () => {
@@ -1276,6 +1376,8 @@
             el.style.animationPlayState = 'paused';
             observer.observe(el);
         });
+
+        } // End of WebGL-available check
     </script>
     <style>
     /* This class will be added to the body to trigger the fade-out effect */
@@ -1287,46 +1389,54 @@
 
 <script>
     (() => {
-        // A variable to hold the timer, so we can cancel it if needed
+        // Auto-navigation to next act (race-condition free)
         let endOfPageTimer = null;
-        // A flag to ensure the timer is only set once
         let isTimerSet = false;
-        // The URL for the next page (ACT II)
+        let isNavigating = false; // Prevents multiple navigations
         const nextActUrl = 'The-First-Weave-ACTII.html';
+        const SCROLL_THRESHOLD = 5;
+        const WAIT_TIME = 3000;
+        const FADE_DURATION = 1500;
 
-        // This function checks if the user has scrolled to the bottom
         function checkScrollPosition() {
-            
-            // Check if the user's viewport is at the bottom of the page.
-            // (The '5' is a small pixel buffer to make it trigger reliably)
-            const isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 5;
+            // Don't check if already navigating
+            if (isNavigating) return;
+
+            const isAtBottom = (window.innerHeight + window.scrollY) >=
+                              (document.body.offsetHeight - SCROLL_THRESHOLD);
 
             if (isAtBottom && !isTimerSet) {
-                // If we are at the bottom and the timer isn't set yet, start it.
+                // User reached bottom, start timer
                 isTimerSet = true;
-                
-                // Set a 10-second timer (10000 milliseconds)
-                endOfPageTimer = setTimeout(() => {
-                    // After 10 seconds, add the fade-out class to the body
-                    document.body.classList.add('fade-out-to-next');
 
-                    // Set another timer to redirect *after* the fade animation is complete
-                    // The duration (1500ms) must match the CSS transition duration above
+                endOfPageTimer = setTimeout(() => {
+                    // Mark as navigating to prevent further triggers
+                    isNavigating = true;
+
+                    // Add fade-out effect
+                    document.body.style.transition = `opacity ${FADE_DURATION}ms ease-out`;
+                    document.body.style.opacity = '0';
+
+                    // Navigate after fade completes
                     setTimeout(() => {
                         window.location.href = nextActUrl;
-                    }, 1500);
+                    }, FADE_DURATION);
+                }, WAIT_TIME);
 
-                }, 3000); 
-
-            } else if (!isAtBottom && isTimerSet) {
-                // If the user scrolls back up, cancel the timer and reset the flag
+            } else if (!isAtBottom && isTimerSet && !isNavigating) {
+                // User scrolled back up, cancel timer
                 clearTimeout(endOfPageTimer);
+                endOfPageTimer = null;
                 isTimerSet = false;
             }
         }
 
-        // Add an event listener that calls our function every time the user scrolls
-        window.addEventListener('scroll', checkScrollPosition);
+        window.addEventListener('scroll', checkScrollPosition, { passive: true });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (endOfPageTimer) clearTimeout(endOfPageTimer);
+        });
     })();
 </script>
 </body>
