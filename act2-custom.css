@@ -1,0 +1,36 @@
+/**
+ * ACT II: The First Weave
+ * Custom styles and overrides
+ * Theme: RED transitioning to BLUE (Pattern → Weave)
+ */
+
+/* Override CSS variables for Act II theme */
+:root {
+    /* Darker red, hints of blue */
+    --primary-color: #6b0000;
+    --primary-light: #ff6666;
+    --primary-glow: rgba(255, 102, 102, 0.6);
+    --secondary-color: #4a0404;
+    --accent-color: #ffaaaa;
+}
+
+/* Act II specific: Starfield slightly different color */
+body::before {
+    background-image:
+        radial-gradient(2px 2px at 20% 30%, #aaa, transparent),
+        radial-gradient(2px 2px at 60% 70%, #aaa, transparent),
+        radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+        radial-gradient(1px 1px at 80% 10%, #aaa, transparent),
+        radial-gradient(2px 2px at 90% 60%, #fff, transparent),
+        radial-gradient(1px 1px at 33% 80%, #fff, transparent),
+        radial-gradient(1px 1px at 15% 60%, #aaa, transparent);
+    animation: stars 200s linear infinite;
+}
+
+/* Act II specific: Different star movement direction */
+@keyframes stars {
+    from { background-position: 0% 0%; }
+    to { background-position: -100% -100%; }
+}
+
+/* No other act-specific styles needed */

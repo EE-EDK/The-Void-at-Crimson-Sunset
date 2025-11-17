@@ -1,0 +1,35 @@
+/**
+ * ACT I: The Fifth Harmonic
+ * Custom styles and overrides
+ * Theme: RED (The Pattern, The Red Frequency, Blood, Warning)
+ */
+
+/* Override CSS variables for Act I theme */
+:root {
+    /* Red color scheme */
+    --primary-color: #8b0000;
+    --primary-light: #ff4444;
+    --primary-glow: rgba(255, 0, 0, 0.5);
+    --secondary-color: #4d0000;
+    --accent-color: #ff9999;
+}
+
+/* Act I specific: Index page title uses Cormorant Garamond */
+.index-page h1 {
+    font-family: 'Cormorant Garamond', serif;
+}
+
+/* Act I specific: Starfield has white stars */
+body::before {
+    background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(2px 2px at 90% 60%, white, transparent),
+        radial-gradient(1px 1px at 33% 80%, white, transparent),
+        radial-gradient(1px 1px at 15% 60%, white, transparent);
+    opacity: 0.3;
+}
+
+/* No additional act-specific styles needed - shared styles cover everything */
