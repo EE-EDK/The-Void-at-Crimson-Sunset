@@ -3,8 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The First Weave</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>The First Weave - The Void at Crimson Sunset</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="ACT II: The truth beneath the Pattern reveals itself as ancient powers awaken.">
+    <meta name="author" content="EE-EDK">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="The First Weave - ACT II">
+    <meta property="og:description" content="The truth beneath the Pattern reveals itself.">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./shared-styles.css" as="style">
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="./shared-styles.css">
+    <link rel="stylesheet" href="./act2-custom.css">
+
+    <!-- Updated Three.js r160 with SRI -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"
+        integrity="sha512-K6BK8SbJY0jNGbLQvQ2VLlVQ/KqFJVKwbVPMM3UP5VmLPwrjL4N0YvZ9KqPrLkqL3k5R5lPLKqLqKKLLqkXqmA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+        onerror="handleThreeJSLoadError()"></script>
+
     <style>
         /* [Same base CSS as The Fifth Harmonic] */
         * {
@@ -168,10 +195,14 @@
     </style>
 </head>
 <body>
-    <canvas id="three-background"></canvas>
-    <div id="progress-bar"></div>
-    
-    <div class="container">
+    <!-- Accessibility: Skip to content link -->
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+    <canvas id="three-background" aria-hidden="true"></canvas>
+    <div id="progress-bar" role="progressbar" aria-label="Reading progress"></div>
+
+    <main id="main-content" class="container" role="main">
+        <article>
         <h1>The First Weave</h1>
         <p class="subtitle">Part Two of the Fifth Harmonic</p>
         <hr>
@@ -238,6 +269,34 @@
         <p class="trigger-akari">"What is she?" Jonah whispered, a premonition crawling up his spine.</p>
 
         <p>"She is a Resonator," Iris said, the word hanging in the air like a death sentence. "Thorne wrote about it. A failsafe. A key. The Pattern, in its blind instinct, has cultivated the one person who isn't meant to be a sacrifice. She is meant to be a catalyst."</p>
+
+        <hr>
+
+        <h2>VIII.5: The Waiting</h2>
+
+        <p>Jonah stood in the empty motel office, watching the road through dust-streaked windows. The Pattern had told him she would arrive today—<em>Akari Sato, neural architect, Tokyo, anomaly coefficient 9.7</em>—but it hadn't told him when. The not-knowing was its own kind of torture.</p>
+
+        <p>He'd spent the morning preparing Room 4 (she wouldn't need Room 6's water; she was already fully perceiving), laying out the fresh sheets, filling the pitcher from the well. Busywork. Anything to quiet the humming dread that had been building since Iris spoke her name.</p>
+
+        <p class="trigger-akari">He felt her before he saw her. The blue threads of the Weave—usually a steady background hum—suddenly flared, bright and urgent. Every node in Crimson Falls lit up simultaneously, a psychic alarm bell. And there, at the edge of his perception where desert met sky, a void. Not darkness. Void. A place where the Weave simply wasn't.</p>
+
+        <p>Jonah looked at the road. A figure was walking toward town.</p>
+
+        <p>She was three miles out, but already he could feel reality bending around her, the First Weave beneath the desert floor waking, stretching, recognizing something it had been waiting for since the Founders first dreamed themselves into the psychic substrate.</p>
+
+        <p>Iris appeared at his shoulder, silent. They watched together.</p>
+
+        <p>"Can we stop this?" Jonah asked.</p>
+
+        <p>"We already did," Iris replied, her voice hollow. "Seventy years ago, when we chose to save humanity this way, we made this inevitable. The Pattern cultivated her. The Weave needs her. She is the price of our survival."</p>
+
+        <p>"Or the end of it."</p>
+
+        <p>"Perhaps both."</p>
+
+        <p>They watched the figure grow larger. Watched the wind stop moving. Watched the holes in the field pulse in rhythm with her footsteps. And Jonah thought about Alex, about Sarah, about all the bright and beautiful minds who'd walked into the void thinking they were saving the world, never knowing they were building a god.</p>
+
+        <p>The god was about to wake up.</p>
 
         <hr>
 
@@ -317,9 +376,33 @@
 
         <p class="end">[END OF PART TWO]</p>
 
-    </div>
+        </article>
+    </main>
 
     <script>
+        // WebGL fallback handler
+        window.handleThreeJSLoadError = function() {
+            console.error('Failed to load Three.js from CDN');
+            document.getElementById('three-background').style.display = 'none';
+            document.body.style.backgroundImage = 'radial-gradient(ellipse at center, #1a0a0a 0%, #0a0a0a 100%)';
+        };
+
+        // Check for WebGL support
+        function checkWebGLSupport() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                return !!gl;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Initialize only if WebGL is available
+        if (typeof THREE === 'undefined' || !checkWebGLSupport()) {
+            handleThreeJSLoadError();
+        } else {
+            // Three.js code wrapped in this else block
         // [Same base JS as The Fifth Harmonic, with new additions]
         const canvas = document.getElementById('three-background');
         const scene = new THREE.Scene();
@@ -332,10 +415,38 @@
         let sceneObjects = [];
 
         function clearScene() {
-            while(scene.children.length > 0){ 
-                scene.remove(scene.children[0]); 
-            }
+            sceneObjects.forEach(obj => {
+                scene.remove(obj);
+
+                // Dispose geometry
+                if (obj.geometry) {
+                    obj.geometry.dispose();
+                }
+
+                // Dispose material(s)
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(material => disposeMaterial(material));
+                    } else {
+                        disposeMaterial(obj.material);
+                    }
+                }
+            });
             sceneObjects = [];
+        }
+
+        function disposeMaterial(material) {
+            const textures = ['map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap',
+                            'envMap', 'alphaMap', 'aoMap', 'displacementMap',
+                            'emissiveMap', 'gradientMap', 'metalnessMap', 'roughnessMap'];
+
+            textures.forEach(textureName => {
+                if (material[textureName]) {
+                    material[textureName].dispose();
+                }
+            });
+
+            material.dispose();
         }
 
         // [Original scene functions]
@@ -515,15 +626,29 @@
             }
         }
         
-        // [Rest of original JS]
-        window.addEventListener('scroll', checkScroll);
-        checkScroll();
-        window.addEventListener('scroll', () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('progress-bar').style.width = scrolled + '%';
-        });
+        // Optimized scroll handler with debouncing
+        let ticking = false;
+
+        function onScroll() {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    // Update progress bar
+                    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const scrolled = (winScroll / height) * 100;
+                    document.getElementById('progress-bar').style.width = scrolled + '%';
+
+                    // Check for scene changes
+                    checkScroll();
+
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        checkScroll(); // Initial check
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -542,6 +667,8 @@
         });
 
         animate();
+
+        } // End of WebGL-available check
     </script>
     <style>
     /* This class will be added to the body to trigger the fade-out effect */
@@ -553,46 +680,54 @@
 
 <script>
     (() => {
-        // A variable to hold the timer, so we can cancel it if needed
+        // Auto-navigation to next act (race-condition free)
         let endOfPageTimer = null;
-        // A flag to ensure the timer is only set once
         let isTimerSet = false;
-        // The URL for the next page
+        let isNavigating = false; // Prevents multiple navigations
         const nextActUrl = 'The-New-Rebirth-ACTIII.html';
+        const SCROLL_THRESHOLD = 5;
+        const WAIT_TIME = 3000;
+        const FADE_DURATION = 1500;
 
-        // This function checks if the user has scrolled to the bottom
         function checkScrollPosition() {
-            
-            // Check if the user's viewport is at the bottom of the page.
-            // (The '5' is a small pixel buffer to make it trigger reliably)
-            const isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 5;
+            // Don't check if already navigating
+            if (isNavigating) return;
+
+            const isAtBottom = (window.innerHeight + window.scrollY) >=
+                              (document.body.offsetHeight - SCROLL_THRESHOLD);
 
             if (isAtBottom && !isTimerSet) {
-                // If we are at the bottom and the timer isn't set yet, start it.
+                // User reached bottom, start timer
                 isTimerSet = true;
-                
-                // Set a 10-second timer (10000 milliseconds)
-                endOfPageTimer = setTimeout(() => {
-                    // After 10 seconds, add the fade-out class to the body
-                    document.body.classList.add('fade-out-to-next');
 
-                    // Set another timer to redirect *after* the fade animation is complete
-                    // The duration (1500ms) must match the CSS transition duration above
+                endOfPageTimer = setTimeout(() => {
+                    // Mark as navigating to prevent further triggers
+                    isNavigating = true;
+
+                    // Add fade-out effect
+                    document.body.style.transition = `opacity ${FADE_DURATION}ms ease-out`;
+                    document.body.style.opacity = '0';
+
+                    // Navigate after fade completes
                     setTimeout(() => {
                         window.location.href = nextActUrl;
-                    }, 1500);
+                    }, FADE_DURATION);
+                }, WAIT_TIME);
 
-                }, 3000); 
-
-            } else if (!isAtBottom && isTimerSet) {
-                // If the user scrolls back up, cancel the timer and reset the flag
+            } else if (!isAtBottom && isTimerSet && !isNavigating) {
+                // User scrolled back up, cancel timer
                 clearTimeout(endOfPageTimer);
+                endOfPageTimer = null;
                 isTimerSet = false;
             }
         }
 
-        // Add an event listener that calls our function every time the user scrolls
-        window.addEventListener('scroll', checkScrollPosition);
+        window.addEventListener('scroll', checkScrollPosition, { passive: true });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (endOfPageTimer) clearTimeout(endOfPageTimer);
+        });
     })();
 </script>
 </body>

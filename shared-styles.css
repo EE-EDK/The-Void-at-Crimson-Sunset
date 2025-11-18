@@ -1,0 +1,385 @@
+/**
+ * Shared Styles for "The Void at Crimson Sunset"
+ * Common CSS across all acts
+ *
+ * Act-specific customizations should be defined in:
+ * - act1-custom.css (Red theme)
+ * - act2-custom.css (Red→Blue transition)
+ * - act3-custom.css (Blue theme)
+ */
+
+/* ===== CSS CUSTOM PROPERTIES (VARIABLES) ===== */
+/* These will be overridden in act-specific files */
+:root {
+    /* Colors - Override per act */
+    --primary-color: #8b0000;
+    --primary-light: #ff4444;
+    --primary-glow: rgba(255, 0, 0, 0.5);
+    --secondary-color: #4d0000;
+    --accent-color: #ff9999;
+
+    /* Spacing */
+    --container-max-width: 800px;
+    --container-padding: 60px 20px;
+    --section-gap: 40px;
+    --paragraph-gap: 18px;
+
+    /* Typography */
+    --font-body: Calibri, sans-serif;
+    --font-title: 'Cormorant Garamond', serif;
+    --font-code: 'Courier New', Courier, monospace;
+
+    --font-size-body: 14pt;
+    --font-size-title: 28pt;
+    --font-size-subtitle: 16pt;
+    --font-size-section: 20pt;
+    --font-size-end: 18pt;
+
+    --line-height-body: 1.6;
+
+    /* Effects */
+    --progress-bar-height: 3px;
+    --drop-cap-size: 3.5em;
+
+    /* Animations */
+    --transition-standard: 0.3s ease;
+    --fade-duration: 1s;
+}
+
+/* ===== RESET & BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+    color: #e8e8e8;
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a0a0a 50%, #0a0a0a 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+::selection {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* ===== THREE.JS CANVAS ===== */
+#three-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+    pointer-events: none;
+}
+
+#three-background.active {
+    opacity: 1;
+}
+
+/* ===== STARFIELD BACKGROUND ===== */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(2px 2px at 90% 60%, white, transparent),
+        radial-gradient(1px 1px at 33% 80%, white, transparent),
+        radial-gradient(1px 1px at 15% 60%, white, transparent);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    opacity: 0.3;
+    animation: stars 200s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes stars {
+    from { background-position: 0% 0%; }
+    to { background-position: 100% 100%; }
+}
+
+/* ===== READING PROGRESS BAR ===== */
+#progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: var(--progress-bar-height);
+    background: linear-gradient(90deg, var(--secondary-color), var(--primary-light));
+    box-shadow: 0 0 10px var(--primary-light);
+    z-index: 1000;
+    transition: width 0.1s;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: var(--container-padding);
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== TYPOGRAPHY ===== */
+
+/* Main Title */
+h1 {
+    font-size: clamp(24pt, 7vw, var(--font-size-title));
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffffff;
+    text-shadow: 0 0 20px var(--primary-glow);
+    letter-spacing: 2px;
+    animation: fadeIn 2s ease-in;
+}
+
+/* Subtitle */
+.subtitle {
+    text-align: center;
+    font-style: italic;
+    margin-bottom: var(--section-gap);
+    color: #aaa;
+    font-size: var(--font-size-subtitle);
+    animation: fadeIn 2s ease-in 0.5s backwards;
+}
+
+/* Section Headings */
+h2 {
+    font-size: clamp(18pt, 5vw, var(--font-size-section));
+    margin: 50px 0 30px 0;
+    color: var(--primary-light);
+    text-shadow: 0 0 15px var(--primary-glow);
+    letter-spacing: 3px;
+    opacity: 0;
+    animation: slideIn var(--fade-duration) ease-out forwards;
+}
+
+/* Paragraphs */
+p {
+    margin-bottom: var(--paragraph-gap);
+    text-align: left;
+    opacity: 0;
+    animation: fadeInText var(--fade-duration) ease-out forwards;
+}
+
+/* Drop Cap */
+h2 + p::first-letter {
+    font-size: var(--drop-cap-size);
+    line-height: 0.9;
+    float: left;
+    margin: 0.1em 0.1em 0 0;
+    color: var(--primary-light);
+    text-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* Emphasis */
+em {
+    font-style: italic;
+    color: var(--accent-color);
+    transition: all var(--transition-standard);
+    cursor: default;
+}
+
+p em:hover {
+    color: var(--primary-light);
+    text-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* Horizontal Rules */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    margin: var(--section-gap) 0;
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* End Marker */
+.end {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 60px;
+    font-size: var(--font-size-end);
+    color: var(--primary-color);
+    text-shadow: 0 0 15px var(--primary-glow);
+    letter-spacing: 4px;
+}
+
+/* ===== SPECIAL CONTENT BLOCKS ===== */
+
+/* Journal Entries */
+.journal-entry {
+    border-left: 2px solid var(--secondary-color);
+    padding-left: 20px;
+    margin: 30px 0;
+    font-family: var(--font-code);
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.journal-entry p {
+    margin-bottom: 12px;
+}
+
+.journal-entry strong {
+    color: var(--primary-light);
+}
+
+/* Poem Fragments */
+.poem-fragment {
+    border-left: 2px solid var(--secondary-color);
+    padding-left: 20px;
+    margin: 30px 0;
+    font-family: var(--font-code);
+    font-style: italic;
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Memory Echoes (ACT III specific, but structured here) */
+.memory-echo {
+    border-left: 2px solid #6699cc;
+    padding-left: 20px;
+    margin: 30px 0;
+    font-style: italic;
+    color: #aabbdd;
+    background: rgba(100, 150, 200, 0.05);
+}
+
+/* ===== TRIGGER ZONES (for Three.js scenes) ===== */
+.trigger-void,
+.trigger-frequency,
+.trigger-entities,
+.trigger-pattern,
+.trigger-weave,
+.trigger-akari,
+.trigger-nine,
+.trigger-kelly,
+.trigger-scavenger,
+.trigger-grief {
+    position: relative;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInText {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Pulse animation for titles (used in index.html) */
+@keyframes pulse {
+    0%, 100% {
+        text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+    }
+    50% {
+        text-shadow: 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
+    }
+}
+
+/* ===== AUTO-NAVIGATION FADE ===== */
+body.fade-out-to-next {
+    transition: opacity 1.5s ease-in-out;
+    opacity: 0;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    body {
+        font-size: 12pt;
+    }
+
+    h1 {
+        font-size: 24pt;
+    }
+
+    h2 {
+        font-size: 18pt;
+    }
+
+    .container {
+        padding: 40px 15px;
+    }
+
+    h2 + p::first-letter {
+        font-size: 2.5em; /* Smaller drop cap on mobile */
+    }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body::before,
+    #three-background,
+    #progress-bar {
+        display: none;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    h1, h2, em {
+        color: black;
+        text-shadow: none;
+    }
+}

@@ -1,0 +1,49 @@
+/**
+ * ACT III: The New Rebirth
+ * Custom styles and overrides
+ * Theme: BLUE (The Weave, Consciousness, Transformation)
+ */
+
+/* Override CSS variables for Act III theme */
+:root {
+    /* Blue color scheme */
+    --primary-color: #00336b;
+    --primary-light: #88ccff;
+    --primary-glow: rgba(136, 204, 255, 0.6);
+    --secondary-color: #04244a;
+    --accent-color: #bbddff;
+}
+
+/* Act III specific: Different background gradient */
+body {
+    background: linear-gradient(180deg, #0a0a0a 0%, #000808 50%, #0a0a0a 100%);
+}
+
+/* Act III specific: Different starfield */
+body::before {
+    background-image:
+        radial-gradient(1px 1px at 20% 30%, #ccc, transparent),
+        radial-gradient(1px 1px at 60% 70%, #ccc, transparent),
+        radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+        radial-gradient(1px 1px at 80% 10%, #ccc, transparent),
+        radial-gradient(2px 2px at 90% 60%, #fff, transparent),
+        radial-gradient(1px 1px at 33% 80%, #fff, transparent),
+        radial-gradient(1px 1px at 15% 60%, #ccc, transparent);
+    background-size: 150% 150%;
+    opacity: 0.15;
+    animation: stars 300s linear infinite;
+}
+
+/* Act III specific: Slower, different direction star animation */
+@keyframes stars {
+    from { background-position: 0% 0%; }
+    to { background-position: -150% -150%; }
+}
+
+/* Act III specific: Memory echo block (already in shared, just ensuring) */
+.memory-echo {
+    border-left: 2px solid #6699cc;
+    background: rgba(100, 150, 200, 0.05);
+}
+
+/* No other act-specific styles needed */
