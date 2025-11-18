@@ -281,6 +281,28 @@ hr {
     position: relative;
 }
 
+/* ===== ACCESSIBILITY ===== */
+
+/* Skip to content link for keyboard navigation */
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 10000;
+    font-weight: bold;
+    border-radius: 0 0 4px 0;
+}
+
+.skip-to-content:focus {
+    top: 0;
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
     from {
@@ -326,25 +348,109 @@ body.fade-out-to-next {
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
+
+/* Mobile phones (portrait and landscape) */
 @media (max-width: 768px) {
+    body {
+        font-size: 13pt; /* Slightly larger for better mobile readability */
+        line-height: 1.7; /* More spacing for easier reading */
+    }
+
+    h1 {
+        font-size: 24pt;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    h2 {
+        font-size: 18pt;
+        letter-spacing: 2px;
+        margin: 40px 0 20px 0;
+    }
+
+    .subtitle {
+        font-size: 14pt;
+        margin-bottom: 30px;
+    }
+
+    .container {
+        padding: 30px 15px; /* More compact on mobile */
+    }
+
+    h2 + p::first-letter {
+        font-size: 2.5em; /* Smaller drop cap on mobile */
+    }
+
+    /* Better spacing for mobile */
+    p {
+        margin-bottom: 20px; /* Slightly more spacing */
+    }
+
+    /* Make journal entries and poems more readable on mobile */
+    .journal-entry,
+    .poem-fragment,
+    .memory-echo {
+        padding-left: 15px;
+        margin: 20px 0;
+        font-size: 12pt;
+    }
+
+    /* Ensure text doesn't overflow on small screens */
+    body {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    /* Reduce animation complexity on mobile */
+    * {
+        animation-duration: 0.5s !important;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
     body {
         font-size: 12pt;
     }
 
     h1 {
-        font-size: 24pt;
+        font-size: 20pt;
     }
 
     h2 {
-        font-size: 18pt;
+        font-size: 16pt;
+    }
+
+    .subtitle {
+        font-size: 13pt;
     }
 
     .container {
-        padding: 40px 15px;
+        padding: 20px 10px;
     }
 
     h2 + p::first-letter {
-        font-size: 2.5em; /* Smaller drop cap on mobile */
+        font-size: 2em;
+    }
+
+    .end {
+        font-size: 16pt;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    .container {
+        padding: 20px 15px;
+    }
+
+    h1 {
+        font-size: 22pt;
+        margin-bottom: 8px;
+    }
+
+    h2 {
+        margin: 30px 0 15px 0;
     }
 }
 
