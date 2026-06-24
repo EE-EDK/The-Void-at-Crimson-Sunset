@@ -1,44 +1,28 @@
-/* Comic layer — illustrated full-text. Panels render from a beat's sprite strip. */
-.comic-cluster {
-  display: grid;
-  gap: 0.6rem;
-  margin: 2.2rem auto;
-  max-width: 1100px;
-}
-.comic-cluster[data-pacing="hold-long"] { grid-template-columns: 1fr; }
-.comic-cluster[data-pacing="standard"]  { grid-template-columns: repeat(2, 1fr); }
-.comic-cluster[data-pacing="cut-busy"]  { grid-template-columns: repeat(3, 1fr); }
+/* Comic layer — one uniform image per stop, tied to a highlighted story sentence.
+   No caption boxes: the body prose is the text; the tied sentence lights up. */
 
-.comic-panel {
-  position: relative;
+.comic-figure {
+  display: block;
+  width: min(760px, 92%);
+  margin: 2.6rem auto;
   aspect-ratio: 16 / 9;
   background-repeat: no-repeat;
-  background-size: 100% auto;        /* strip is full-width; position selects the panel cell */
-  border: 1px solid rgba(180, 30, 30, 0.35);
-  box-shadow: 0 0 22px rgba(120, 0, 0, 0.25);
+  background-size: 100% auto;          /* strip is full-width; position-y selects the cell */
+  background-position-x: center;
+  border: 1px solid rgba(180, 30, 30, 0.4);
+  box-shadow: 0 0 30px rgba(120, 0, 0, 0.28);
   opacity: 0;
-  transform: scale(1.04);
-  transition: opacity 900ms ease, transform 1400ms ease;
+  transform: translateY(14px);
+  transition: opacity 900ms ease, transform 1100ms ease;
 }
-.comic-panel.is-visible { opacity: 1; transform: scale(1); }
+.comic-figure.is-visible { opacity: 1; transform: none; }
+.comic-figure.is-divider { width: min(900px, 96%); filter: saturate(1.1) contrast(1.05); }
 
-.comic-divider {
-  width: 100%;
-  margin: 3rem 0;
-  aspect-ratio: 21 / 9;
-  background-size: cover;
-  background-position: center;
-  filter: saturate(1.1) contrast(1.05);
-}
-
-.comic-caption, .comic-bubble {
-  font-family: 'Cormorant Garamond', serif;
-  color: #e7d7d7;
-  padding: 0.5rem 0.8rem;
-  backdrop-filter: blur(3px);
-}
-.comic-caption { background: rgba(10, 5, 5, 0.6); border-left: 3px solid #7a0010; font-style: italic; }
-.comic-bubble  { background: rgba(30, 6, 6, 0.7); border-radius: 10px; }
+/* The story sentence an image illustrates — highlights when the image is in view. */
+.comic-tie { transition: color 600ms ease, text-shadow 600ms ease; }
+.comic-tie.lit { color: #ff5a5a; text-shadow: 0 0 14px rgba(200, 0, 0, 0.55); }
+/* Paragraph-level fallback when a sentence can't be cleanly wrapped. */
+p.comic-tie.lit, [data-beat].lit { color: #f1b6b6; }
 
 .comic-mode-switch {
   position: fixed; top: 12px; right: 12px; z-index: 50;
@@ -53,13 +37,12 @@
 .comic-mode-switch button[aria-pressed="true"] { color: #fff; border-color: #7a0010; background: rgba(120, 0, 0, 0.35); }
 .comic-mode-switch button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Mobile: single-column webtoon flow regardless of pacing */
 @media (max-width: 720px) {
-  .comic-cluster[data-pacing] { grid-template-columns: 1fr; }
+  .comic-figure, .comic-figure.is-divider { width: 96%; }
   .comic-mode-switch { top: auto; bottom: 10px; right: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .comic-panel { transition: opacity 300ms ease; transform: none; }
-  .comic-panel.is-visible { transform: none; }
+  .comic-figure { transition: opacity 300ms ease; transform: none; }
+  .comic-tie { transition: none; }
 }
