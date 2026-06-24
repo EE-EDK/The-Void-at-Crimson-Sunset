@@ -1,0 +1,65 @@
+/* Comic layer — illustrated full-text. Panels render from a beat's sprite strip. */
+.comic-cluster {
+  display: grid;
+  gap: 0.6rem;
+  margin: 2.2rem auto;
+  max-width: 1100px;
+}
+.comic-cluster[data-pacing="hold-long"] { grid-template-columns: 1fr; }
+.comic-cluster[data-pacing="standard"]  { grid-template-columns: repeat(2, 1fr); }
+.comic-cluster[data-pacing="cut-busy"]  { grid-template-columns: repeat(3, 1fr); }
+
+.comic-panel {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-repeat: no-repeat;
+  background-size: 100% auto;        /* strip is full-width; position selects the panel cell */
+  border: 1px solid rgba(180, 30, 30, 0.35);
+  box-shadow: 0 0 22px rgba(120, 0, 0, 0.25);
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 900ms ease, transform 1400ms ease;
+}
+.comic-panel.is-visible { opacity: 1; transform: scale(1); }
+
+.comic-divider {
+  width: 100%;
+  margin: 3rem 0;
+  aspect-ratio: 21 / 9;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.1) contrast(1.05);
+}
+
+.comic-caption, .comic-bubble {
+  font-family: 'Cormorant Garamond', serif;
+  color: #e7d7d7;
+  padding: 0.5rem 0.8rem;
+  backdrop-filter: blur(3px);
+}
+.comic-caption { background: rgba(10, 5, 5, 0.6); border-left: 3px solid #7a0010; font-style: italic; }
+.comic-bubble  { background: rgba(30, 6, 6, 0.7); border-radius: 10px; }
+
+.comic-mode-switch {
+  position: fixed; top: 12px; right: 12px; z-index: 50;
+  display: flex; gap: 4px;
+  background: rgba(10, 5, 5, 0.7); padding: 5px; border-radius: 10px;
+  backdrop-filter: blur(6px); border: 1px solid rgba(180, 30, 30, 0.4);
+}
+.comic-mode-switch button {
+  font: inherit; color: #d8c4c4; background: transparent;
+  border: 1px solid transparent; border-radius: 7px; padding: 4px 9px; cursor: pointer;
+}
+.comic-mode-switch button[aria-pressed="true"] { color: #fff; border-color: #7a0010; background: rgba(120, 0, 0, 0.35); }
+.comic-mode-switch button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Mobile: single-column webtoon flow regardless of pacing */
+@media (max-width: 720px) {
+  .comic-cluster[data-pacing] { grid-template-columns: 1fr; }
+  .comic-mode-switch { top: auto; bottom: 10px; right: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comic-panel { transition: opacity 300ms ease; transform: none; }
+  .comic-panel.is-visible { transform: none; }
+}
