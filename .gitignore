@@ -31,3 +31,9 @@ __pycache__/
 
 # Environment
 .env
+
+# comic build pipeline
+.venv/
+tools/**/__pycache__/
+.pytest_cache/
+dist/
