@@ -1,10 +1,20 @@
 """Annotate the prose HTML with data-beat anchors by matching dialogue lines to paragraphs."""
 import re
 import unicodedata
+from collections import Counter
 
 _P = re.compile(r"<p\b([^>]*)>(.*?)</p>", re.IGNORECASE | re.DOTALL)
 _TAG = re.compile(r"<[^>]+>")
 _NONWORD = re.compile(r"[^a-z0-9]+")
+
+_STOP = set((
+    "the a an and or of to in on at for with as is was were be been being his her its their "
+    "it he she they them you your i me my we our this that these those there here then than so "
+    "but not no yes if when while what which who whom how why where into out over under again "
+    "all any each from by about had has have will would could should did does done just like "
+    "alex back down look felt feel knew know something someone toward through still even more "
+    "into onto only very much most some other another said say says one two three"
+).split())
 
 
 def normalize(s):
@@ -88,23 +98,104 @@ def _phrase_pin(norm_paras, phrase):
     return None
 
 
+def _tokens(text):
+    text = unicodedata.normalize("NFD", text.lower())
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
+    return [w for w in re.findall(r"[a-z0-9]+", text) if len(w) >= 4 and w not in _STOP]
+
+
+def _beat_signature(beat):
+    """(name_tokens, dialogue_tokens, description_tokens) for content matching."""
+    name = set(_tokens(beat["beat"].replace("_", " ")))
+    dlg = set()
+    for d in beat.get("dialogue", []):
+        dlg |= set(_tokens(d.get("line", "")))
+    desc = set()
+    for p in beat.get("panels", []):
+        desc |= set(_tokens(p.get("alt", "")))
+    return name, dlg, desc
+
+
+def _content_pins(para_words, norm_paras, beats, max_df=3):
+    """High-precision alignment pins, monotonic. A beat is pinned only on a strong,
+    unambiguous signal: (a) its verbatim dialogue line appears in a paragraph, or
+    (b) one of its beat-name words is GLOBALLY rare (occurs in <= max_df paragraphs,
+    e.g. 'starfall', 'kcrm', 'hawking'). Ambiguous words ('black', 'red', 'door')
+    occur too widely to pin on. Unpinned beats are interpolated by the caller."""
+    P, B = len(para_words), len(beats)
+    if not P or not B:
+        return {}
+    df = Counter()
+    postings = {}
+    for j, pw in enumerate(para_words):
+        for w in pw:
+            df[w] += 1
+            postings.setdefault(w, []).append(j)
+
+    ats = [anchor_text(b) for b in beats]
+    names = [_beat_signature(b)[0] for b in beats]
+    max_slope = max(8, 3.0 * P / B)   # plausible paragraphs-per-beat (~3x average)
+    pins, used, cursor = {}, set(), 0
+    last_b, last_p = 0, 0
+    for bi in range(B):
+        expected = round(bi * (P - 1) / (B - 1)) if B > 1 else 0
+        chosen = None
+        at = ats[bi]
+        if at:  # verbatim dialogue line — strongest signal
+            for j in range(cursor, P):
+                if j not in used and at in norm_paras[j]:
+                    chosen = j
+                    break
+        if chosen is None:  # globally-rare beat-name word
+            cands = [j for w in names[bi] if df.get(w, 99) <= max_df
+                     for j in postings.get(w, []) if j >= cursor and j not in used]
+            if cands:
+                chosen = min(cands, key=lambda j: (abs(j - expected), j))
+        # Reject an implausibly steep jump from the last accepted pin: a single
+        # false match must not race the cursor past the middle of the story.
+        if chosen is not None and bi > last_b:
+            if (chosen - last_p) / (bi - last_b) > max_slope:
+                chosen = None
+        if chosen is not None:
+            pins[bi] = chosen
+            used.add(chosen)
+            cursor = chosen + 1
+            last_b, last_p = bi, chosen
+    return pins
+
+
 def assign_paragraphs(num_beats, num_paras, pins):
-    """One distinct paragraph per beat: monotonic, evenly spread, honoring pins."""
-    if num_beats <= 0 or num_paras <= 0:
+    """One distinct paragraph per beat: monotonic, evenly spread, honoring pins.
+    Pins are treated as knots; beats between them are interpolated linearly so the
+    spread stays even while aligned at every pin."""
+    B, P = num_beats, num_paras
+    if B <= 0 or P <= 0:
         return []
-    denom = (num_beats - 1) or 1
-    targets = []
-    for i in range(num_beats):
-        targets.append(pins[i] if i in pins else round(i * (num_paras - 1) / denom))
+    # Monotonic knots from pins.
+    knots, lastb, lastp = [], -1, -1
+    for b in sorted(pins):
+        if b > lastb and pins[b] > lastp:
+            knots.append((b, pins[b])); lastb, lastp = b, pins[b]
+    # Anchor the ends so leading/trailing beats spread to the page extents.
+    if not knots or knots[0][0] != 0:
+        knots = [(0, 0)] + knots
+    if knots[-1][0] != B - 1:
+        knots = knots + [(B - 1, P - 1)]
+    # Piecewise-linear interpolation between knots.
+    raw = [0.0] * B
+    for (ba, pa), (bb, pb) in zip(knots, knots[1:]):
+        span = (bb - ba) or 1
+        for i in range(ba, bb + 1):
+            raw[i] = pa + (i - ba) / span * (pb - pa)
+    # Round and force strictly-increasing distinct indices within [0, P-1].
     assigned, prev = [], -1
-    for i in range(num_beats):
-        t = targets[i]
+    for i in range(B):
+        t = int(round(raw[i]))
         if t <= prev:
             t = prev + 1
-        if t >= num_paras:
-            t = num_paras - 1
-        assigned.append(t)
-        prev = t
+        if t > P - 1:
+            t = P - 1
+        assigned.append(t); prev = t
     return assigned
 
 
@@ -116,9 +207,12 @@ def distribute_anchors(html, beats, manual_pins=None):
     html = strip_anchors(html)
     paragraphs = list(_P.finditer(html))
     norm_paras = [normalize(m.group(2)) for m in paragraphs]
+    para_words = [set(_tokens(_TAG.sub(" ", m.group(2)))) for m in paragraphs]
     P = len(paragraphs)
 
-    pins = _text_pins(norm_paras, beats)
+    # Content-based alignment: pin beats to paragraphs that mention their
+    # distinctive keywords (name + dialogue + description), monotonically.
+    pins = _content_pins(para_words, norm_paras, beats)
     name_to_index = {b["beat"]: i for i, b in enumerate(beats)}
     for beat_name, phrase in (manual_pins or []):
         bi = name_to_index.get(beat_name)
