@@ -19,27 +19,35 @@ def normalize(s):
 def anchor_text(beat):
     for line in beat.get("dialogue", []):
         norm = normalize(line.get("line", ""))
-        if norm:
+        if len(norm) >= 18:
             return norm
     return None
 
 
 def annotate_html(html, beats):
     matched, unmatched = [], []
+    paragraphs = list(_P.finditer(html))
+    norm_paras = [normalize(m.group(2)) for m in paragraphs]
+    cursor = 0
+    insertions = {}  # paragraph index -> beat name
     for beat in beats:
         text = anchor_text(beat)
         if not text:
             unmatched.append(beat["beat"]); continue
-        hit = None
-        for m in _P.finditer(html):
-            if "data-beat" in m.group(1):
+        found = None
+        for i in range(cursor, len(paragraphs)):
+            if i in insertions or "data-beat" in paragraphs[i].group(1):
                 continue
-            if text in normalize(m.group(2)):
-                hit = m; break
-        if hit is None:
+            if text in norm_paras[i]:
+                found = i; break
+        if found is None:
             unmatched.append(beat["beat"]); continue
-        html = (html[:hit.start()]
-                + f'<p data-beat="{beat["beat"]}"{hit.group(1)}>{hit.group(2)}</p>'
-                + html[hit.end():])
+        insertions[found] = beat["beat"]
+        cursor = found + 1
         matched.append(beat["beat"])
+    for i in sorted(insertions, reverse=True):
+        m = paragraphs[i]
+        html = (html[:m.start()]
+                + f'<p data-beat="{insertions[i]}"{m.group(1)}>{m.group(2)}</p>'
+                + html[m.end():])
     return html, matched, unmatched

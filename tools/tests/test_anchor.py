@@ -29,3 +29,22 @@ def test_unmatched_when_no_paragraph_contains_text():
     out, matched, unmatched = annotate_html(html, beats)
     assert matched == [] and unmatched == ["ghost"]
     assert "data-beat" not in out
+
+
+def test_forward_cursor_keeps_matches_in_document_order():
+    html = ("<article>"
+            "<p>Alex first heard the distant hum at dawn.</p>"
+            "<p>Years afterward, Alex first heard the distant hum again.</p>"
+            "</article>")
+    beats = [
+        {"beat": "first",  "dialogue": [{"speaker": "n", "line": "Alex first heard the distant hum at dawn"}]},
+        {"beat": "second", "dialogue": [{"speaker": "n", "line": "Alex first heard the distant hum again"}]},
+    ]
+    out, matched, unmatched = annotate_html(html, beats)
+    assert matched == ["first", "second"]
+    assert out.index('data-beat="first"') < out.index('data-beat="second"')
+
+
+def test_short_generic_line_is_not_anchored():
+    beat = {"beat": "b", "dialogue": [{"speaker": "n", "line": "I remember."}]}
+    assert anchor_text(beat) is None
