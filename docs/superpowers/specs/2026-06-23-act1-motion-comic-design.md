@@ -45,6 +45,9 @@ data-only work later.
 | Narration phasing | **Phase 2, rolls out per section** (S1 ready today) | Only S1 narration produced so far |
 | Optimized panel assets | **Commit optimized WebP**; 218 MB originals stay gitignored | Static site deploys from git |
 | Mobile | **Responsive single source** — CSS collapses to single-column webtoon flow | No divergence; vanilla CSS |
+| Distribution targets | **Self-Host/Caddy (primary) + itch.io HTML5 (additional)** | Same build serves both |
+| Panel packing | **Per-beat sprite strips** (~180 image files, all frames kept) | itch.io 1,000-file cap; one build everywhere |
+| Three.js | **Vendor `three.min.js` locally** (keep existing no-WebGL fallback) | Robust in itch iframe; no cdnjs dependency |
 | ~~Caption distillation~~ | **Dropped** | Full prose retained; captions unnecessary |
 | ~~Horror-trigger re-mapping~~ | **Dropped** | Prose retained → triggers keep original anchors |
 
@@ -91,20 +94,25 @@ the-void-is-crimson/
       comic-engine.js             # NEW: fetch manifest, inject panels at beat anchors, animate on scroll
       mode-controller.js          # NEW: Read / Atmosphere / Narrated switching + narration playback
     css/comic.css                 # NEW: panel grid, mobile collapse, switcher UI, animations
+    vendor/three.min.js           # NEW: vendored Three.js r160 (replaces cdnjs; fallback kept)
     comic/
       act1.comic.json             # NEW: built manifest (committed)
-      frames/act1/*.webp          # NEW: optimized panels (committed)
-      narration/act1/*.mp3        # NEW (Phase 2): transcoded per-beat narration mixes (committed)
+      strips/act1/<beat>.webp      # NEW: per-beat sprite strips, slug-safe names (committed)
+      narration/act1/<beat>.mp3    # NEW (Phase 2): transcoded per-beat narration mixes (committed)
   tools/
     build-comic-manifest.py       # NEW: join frame-plan + video-manifest + dialogue + story-index + narration index
-    optimize-comic-frames.py      # NEW: 1280×720 JPG → WebP (~1280w) + LQIP
-    validate-comic-manifest.py    # NEW: panels resolve; beats ≥1 panel; beat order matches; narration refs valid
+    pack-comic-strips.py          # NEW: per beat, slug+resize frames → WebP strip + per-panel offsets + LQIP
+    validate-comic-manifest.py    # NEW: strips resolve; beats ≥1 panel; offsets valid; beat order matches; narration refs valid; file count < 1000; paths slug-safe & < 240 chars
+    package-itch.py               # NEW: assemble itch.io zip from deployable files + run validator
 ```
 
 ### Components & boundaries
 - **`build-comic-manifest.py`** — pure data join → `act1.comic.json`. Marks each beat's
   narration availability (`narration: "ready" | "pending"`).
-- **`optimize-comic-frames.py`** — image pipeline only; idempotent.
+- **`pack-comic-strips.py`** — image pipeline only; idempotent. Per beat: slugifies +
+  resizes its frames and packs them into one WebP **sprite strip**, recording each panel's
+  pixel offset/extent into the manifest, plus a tiny LQIP per beat. Output names are
+  lowercase, space-free, `< 240` chars.
 - **`comic-engine.js`** (IIFE, `'use strict'`) — anchors prose paragraphs to beats and injects
   the beat's panel cluster after the matching paragraph; animates panels on scroll via the
   existing observer. Mode-agnostic.
@@ -130,6 +138,10 @@ validated). `comic-engine.js` injects each beat's panel cluster immediately afte
 
 ## 6. Panel & layout model
 
+- **Rendering:** each beat owns one WebP **sprite strip**; individual panels are `<div>`s
+  sized to the strip's panel cell with `background-image` + `background-position` (or an
+  `<img>` + `object-position`) using the per-panel offsets in the manifest. One network
+  request per beat instead of one per panel — fewer files (itch cap) and fewer round-trips.
 - Each beat = a comic cluster injected after its prose anchor. `pacing_role` drives layout:
   `hold-long` → full-width splash; `standard` → 2–3 panel row; `cut-busy` → tight 4–6 grid.
 - `role` tunes emphasis (establish = wide; character-close = portrait focus; vfx-* = receives
@@ -199,7 +211,26 @@ render and the web comic evolve together.
 
 ---
 
-## 12. Risks
+## 12. itch.io HTML5 packaging
+
+Additional distribution target alongside Self-Host/Caddy; same build serves both.
+
+- **Entry & structure:** `index.html` at the zip root (already the title page); all pages +
+  assets relative. Zip only.
+- **Limits:** ≤ 1,000 files, ≤ 500 MB extracted, ≤ 200 MB/file, ≤ 240-char paths. Met via
+  per-beat sprite strips (~180) + audio + JS/CSS ≈ 500 files; WebP/MP3 keep total well under
+  500 MB. `validate-comic-manifest.py` enforces the file count and path rules pre-zip.
+- **Paths:** all relative (no leading `/`); slug-safe, case-correct names — itch's CDN is
+  case-sensitive and 403s on bad/trailing-slash paths.
+- **Three.js:** served from `assets/vendor/three.min.js` (no cdnjs); existing
+  `handleThreeJSLoadError` fallback retained.
+- **Embed:** recommend "click to launch in fullscreen" (mobile forces fullscreen anyway); if
+  embedded, enable scrollbars. Upload-time setting, not code.
+- **Compression:** itch auto-GZIPs `.html/.js/.css/.wav`; WebP/MP3 already compressed.
+- A `tools/package-itch.py` (or shell) step assembles the zip from the deployable files and
+  runs the validator. The Self-Host deploy is unaffected.
+
+## 13. Risks
 
 - **Prose ↔ beat anchoring** may have edge cases (beats spanning multiple paragraphs, or
   paragraphs with no beat) → validation flags unmatched anchors for manual placement.
@@ -208,3 +239,9 @@ render and the web comic evolve together.
   fallback to Atmosphere for `pending` beats.
 - **Two-repo coupling** → build tools take the generation-repo path as a config arg; the build
   depends on that sibling repo being present.
+- **Sprite-strip responsive cropping** → panels share one strip, so per-panel `object-position`
+  math must stay exact across breakpoints; the mobile single-column reflow reads panels from the
+  same strip. Mitigated by storing explicit pixel offsets/extents in the manifest and validating
+  them.
+- **itch.io file/size caps** → enforced pre-zip by `validate-comic-manifest.py`; sprite strips
+  keep file count ~500.
