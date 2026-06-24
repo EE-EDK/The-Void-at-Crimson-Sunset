@@ -64,8 +64,9 @@ Generation/video repo: `ACTIVE-PROJECTS/ai-video-photo/The Void is Crimson/`
 | `output/act1-video-manifest.json` | Canonical 180-clip beat spine: `location`, `characters`, timing |
 | `output/act1-story-index.csv` | Per-frame `description` (→ alt text), `characters`, `dialogue` |
 | `src/act1-dialogue.json` | Per-beat `speaker`, `line`, `direction`, `timing` |
-| `generated/videos/_narr/<clip>_mixed.wav` | **Per-beat narration mix** (Narrated mode audio) — S1 only so far |
-| `generated/videos/_narr/<clip>_<n>_<speaker>.wav` | Per-speaker narration stems (optional finer control) |
+| `generated/videos/_narr/<shot>_mixed.wav` | **Per-SHOT narration mix** (Narrated mode audio). A *shot* (`S1-01`) spans ~1–2 story beats; mapping in `src/act1-video-shots-S1.json`. Only `S1-01/02/03_mixed.wav` exist today, covering beats `headache_studio`, `jen_voice`, `therapist`, `coordinates_write`. |
+| `generated/videos/_narr/<shot>_<n>_<speaker>.wav` | Per-speaker narration stems (optional finer control) |
+| `src/act1-video-shots-S1.json` | Shot→beats map (24 shots for section I), needed to attach per-shot audio to beats |
 | `generated/audio/dialogue/_refs/*.wav` | 13 character voice identities (alex, jen, morrison, iris, …) |
 
 Web repo: `ACTIVE-PROJECTS/web/the-void-is-crimson/`
@@ -156,9 +157,11 @@ validated). `comic-engine.js` injects each beat's panel cluster immediately afte
 A persistent control (top corner, glassmorphic, matches aesthetic) toggles:
 - **Read** (default): silent.
 - **Read + Atmosphere**: existing horror SFX/triggers active.
-- **Narrated** *(Phase 2)*: per-beat narration plays on scroll-into-view; narrator lines use
-  `narrator-v4-5050.wav`–derived voice, dialogue uses per-character stems; ducks atmosphere
-  under speech (existing ducking bus). Beats without audio fall back to Atmosphere silently.
+- **Narrated** *(Phase 2)*: **per-shot** narration plays on scroll-into-view. Each beat maps
+  to a shot; when a beat enters view, its shot's clip starts (and is NOT restarted while
+  scrolling through other beats of the same shot). Narrator lines use `narrator-v4-5050.wav`–
+  derived voice, dialogue uses per-character stems; ducks atmosphere under speech (existing
+  ducking bus). Beats whose shot has no audio fall back to Atmosphere silently.
 
 Mode persists in `localStorage`. Honors `prefers-reduced-motion` (no auto-advance; scroll-paced
 regardless of mode). All audio gated behind a user gesture (existing AudioContext unlock).
@@ -198,8 +201,9 @@ Phase 1 builds the **complete path through every layer** so the riskiest integra
   - **all three modes** working: Read, Read + Atmosphere, and **Narrated** — including
     `mode-controller.js` audio playback (scroll-synced clip start, atmosphere ducking,
     narrator vs. per-character voice routing through the Howler bus)
-  - **narration populated for section S1 only** (transcode S1 `_narr/*_mixed.wav`); beats
-    marked `pending` (S2…V) fall back to Atmosphere silently in Narrated mode
+  - **narration populated for the S1 shots that have audio** (`S1-01/02/03`, covering beats
+    `headache_studio`, `jen_voice`, `therapist`, `coordinates_write`); transcode their
+    `_narr/<shot>_mixed.wav` → MP3; all other beats are `pending` and fall back to Atmosphere
   - vendored Three.js, validation, itch packaging step
 - **Phase 2 (data fill, no new code):** transcode + commit narration for sections S2…V as the
   video project produces them; each lands by dropping audio files + flipping `pending`→`ready`.
