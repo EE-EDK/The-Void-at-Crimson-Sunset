@@ -1,14 +1,21 @@
-"""CLI: insert data-beat anchors into the prose page; report coverage."""
+"""CLI: anchor every beat to a paragraph, evenly spread across the prose."""
 import argparse
 import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tools.comic.anchor import annotate_html
+from tools.comic.anchor import distribute_anchors
 
 DEFAULT_HTML = "act1-fifth-harmonic.html"
 DEFAULT_MANIFEST = "assets/comic/act1.comic.json"
+
+# Beats whose narrated line is paraphrased in the prose (so text-matching misses
+# them) but which we want pinned to a specific paragraph for alignment.
+MANUAL_PINS = [
+    ("therapist", "stopped telling his therapist"),
+    ("coordinates_write", "43°41'23"),
+]
 
 
 def main(argv=None):
@@ -19,13 +26,10 @@ def main(argv=None):
 
     beats = json.loads(Path(args.manifest).read_text(encoding="utf-8"))["beats"]
     html = Path(args.html).read_text(encoding="utf-8")
-    new_html, matched, unmatched = annotate_html(html, beats)
+    new_html, anchored, paras = distribute_anchors(html, beats, MANUAL_PINS)
     Path(args.html).write_text(new_html, encoding="utf-8")
-    print(f"anchored {len(matched)}/{len(beats)} beats; {len(unmatched)} unmatched")
-    if unmatched:
-        print("UNMATCHED (need manual data-beat placement):")
-        for b in unmatched:
-            print(f"  - {b}")
+    print(f"anchored {anchored}/{len(beats)} beats across {paras} paragraphs "
+          f"(~1 image every {paras / max(anchored, 1):.1f} paragraphs)")
     return 0
 
 

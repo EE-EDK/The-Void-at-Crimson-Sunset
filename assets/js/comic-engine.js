@@ -2,7 +2,9 @@
    - No caption boxes (the body prose is the text; no duplicates).
    - Each image is anchored after its [data-beat] paragraph; the sentence it
      illustrates is wrapped in <span class="comic-tie"> and lights up + is
-     narrated when the image scrolls into view. */
+     narrated when the image scrolls into view.
+   - Images lazy-load (background set just before they enter view) so a large
+     number of beats stays performant. */
 (function () {
   'use strict';
 
@@ -30,9 +32,7 @@
     fig.className = 'comic-figure' + (beat.is_section_break ? ' is-divider' : '');
     fig.setAttribute('role', 'img');
     fig.setAttribute('aria-label', (p && p.alt) || beat.beat);
-    fig.style.backgroundImage = 'url("./' + beat.strip + '")';
-    fig.style.backgroundPositionY = bgPosY(beat, p.rect) + '%';
-    return fig;
+    return { fig: fig, bg: 'url("./' + beat.strip + '")', posy: bgPosY(beat, p.rect) + '%' };
   }
 
   function tieLine(beat) {
@@ -88,24 +88,43 @@
       var anchor = document.querySelector('[data-beat="' + beat.beat + '"]');
       if (!anchor || !beat.panels || !beat.panels.length) { return; }
       var tie = wrapTie(anchor, tieLine(beat));
-      var fig = buildFigure(beat);
-      anchor.parentNode.insertBefore(fig, anchor.nextSibling);
-      items.push({ fig: fig, tie: tie });
+      var f = buildFigure(beat);
+      anchor.parentNode.insertBefore(f.fig, anchor.nextSibling);
+      items.push({ fig: f.fig, tie: tie, bg: f.bg, posy: f.posy, loaded: false });
     });
     observe(items);
     return beatsByName;
   }
 
+  function load(it) {
+    if (it.loaded) { return; }
+    it.fig.style.backgroundImage = it.bg;
+    it.fig.style.backgroundPositionY = it.posy;
+    it.loaded = true;
+  }
+
   function observe(items) {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var byFig = new Map();
     items.forEach(function (it) { byFig.set(it.fig, it); });
-    if (reduce) { items.forEach(function (it) { it.fig.classList.add('is-visible'); }); }
-    var io = new IntersectionObserver(function (entries) {
+
+    // Loader: set the background a bit before the image enters view.
+    var loader = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { var it = byFig.get(e.target); if (it) { load(it); } loader.unobserve(e.target); }
+      });
+    }, { rootMargin: '600px 0px 600px 0px' });
+    items.forEach(function (it) { loader.observe(it.fig); });
+
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { items.forEach(function (it) { load(it); it.fig.classList.add('is-visible'); }); return; }
+
+    // Viewer: fade the image in and light its tied sentence while in view.
+    var viewer = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         var it = byFig.get(e.target);
         if (!it) { return; }
         if (e.isIntersecting) {
+          load(it);
           it.fig.classList.add('is-visible');
           if (it.tie && it.tie.classList) { it.tie.classList.add('lit'); }
         } else if (it.tie && it.tie.classList) {
@@ -113,7 +132,7 @@
         }
       });
     }, { rootMargin: '0px 0px -30% 0px', threshold: 0.25 });
-    items.forEach(function (it) { io.observe(it.fig); });
+    items.forEach(function (it) { viewer.observe(it.fig); });
   }
 
   var ready = fetch(MANIFEST_URL)
