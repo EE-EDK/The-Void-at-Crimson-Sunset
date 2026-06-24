@@ -8,14 +8,7 @@ WEBP_QUALITY = 80
 
 
 def pack_beat(panel_files, out_path, panel_w=PANEL_W, panel_h=PANEL_H):
-    pairs = []
-    for p in panel_files:
-        p = Path(p)
-        if not p.exists():
-            print(f"WARNING: missing frame, skipping: {p}", file=sys.stderr)
-            continue
-        pairs.append(p)
-    imgs = [Image.open(p).convert("RGB").resize((panel_w, panel_h)) for p in pairs]
+    imgs = [Image.open(p).convert("RGB").resize((panel_w, panel_h)) for p in panel_files]
     strip = Image.new("RGB", (panel_w, panel_h * len(imgs)))
     rects = []
     for i, im in enumerate(imgs):
@@ -29,13 +22,19 @@ def pack_beat(panel_files, out_path, panel_w=PANEL_W, panel_h=PANEL_H):
 
 def augment_manifest(manifest, frames_dir, strips_dir, web_prefix):
     for beat in manifest["beats"]:
-        files = [Path(frames_dir) / p["file"] for p in beat["panels"]]
+        present_panels, present_files = [], []
+        for p in beat["panels"]:
+            fp = Path(frames_dir) / p["file"]
+            if fp.exists():
+                present_panels.append(p); present_files.append(fp)
+            else:
+                print(f"WARNING: missing frame, dropping panel: {p['file']}", file=sys.stderr)
         out_path = Path(strips_dir) / f"{beat['slug']}.webp"
-        rects = pack_beat(files, out_path)
+        rects = pack_beat(present_files, out_path)
+        beat["panels"] = present_panels
         beat["strip"] = f"{web_prefix}/{beat['slug']}.webp"
         beat["strip_w"] = PANEL_W
         beat["strip_h"] = PANEL_H * len(rects)
-        # zip stops at shorter list — panels with missing frames get no rect
-        for panel, rect in zip(beat["panels"], rects):
+        for panel, rect in zip(present_panels, rects):
             panel["rect"] = rect
     return manifest

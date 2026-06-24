@@ -31,3 +31,20 @@ def test_augment_manifest_adds_strip_and_rects(tmp_path):
     assert beat["strip_w"] == 1280 and beat["strip_h"] == 720
     assert beat["panels"][0]["rect"] == {"x": 0, "y": 0, "w": 1280, "h": 720}
     assert (strips / "headache_studio.webp").exists()
+
+
+def test_augment_manifest_drops_missing_frame(tmp_path):
+    frames = tmp_path / "frames"; frames.mkdir()
+    _img(frames / "0001 - establish - b.jpg", (1, 2, 3))
+    # "0002 - missing - b.jpg" is intentionally absent
+    strips = tmp_path / "strips"
+    manifest = {"act": "I", "title": "t", "beats": [
+        {"beat": "b", "slug": "b", "panels": [
+            {"file": "0001 - establish - b.jpg", "role": "establish", "alt": "x"},
+            {"file": "0002 - missing - b.jpg", "role": "resolution", "alt": "y"}]}]}
+    out = augment_manifest(manifest, frames, strips, "assets/comic/strips/act1")
+    beat = out["beats"][0]
+    assert len(beat["panels"]) == 1
+    assert beat["panels"][0]["file"] == "0001 - establish - b.jpg"
+    assert all("rect" in p for p in beat["panels"])
+    assert beat["strip_h"] == 720
