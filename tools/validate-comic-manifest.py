@@ -20,7 +20,7 @@ def collect_deploy_files(root: Path):
     files = []
     for g in DEPLOY_GLOBS:
         files.extend(sorted(root.glob(g)))
-    return files
+    return list(dict.fromkeys(files))
 
 
 def main(argv=None):
@@ -32,7 +32,7 @@ def main(argv=None):
 
     manifest = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     files = collect_deploy_files(Path(args.root))
-    errors = validate(manifest, Path(args.strips), files)
+    errors = validate(manifest, Path(args.strips), files, Path(args.root))
     if errors:
         print(f"INVALID ({len(errors)} errors):")
         for e in errors:

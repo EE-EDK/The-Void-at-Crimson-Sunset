@@ -1,4 +1,5 @@
 """Validate a packed comic manifest + itch.io deploy constraints."""
+import os
 import re
 from pathlib import Path
 
@@ -9,7 +10,7 @@ MAX_FILE_BYTES = 200 * 1024 * 1024
 MAX_TOTAL_BYTES = 500 * 1024 * 1024
 
 
-def validate(manifest, strips_dir, deploy_files):
+def validate(manifest, strips_dir, deploy_files, root):
     errors = []
     beats = manifest.get("beats", [])
     if not beats:
@@ -32,7 +33,7 @@ def validate(manifest, strips_dir, deploy_files):
         errors.append(f"deploy has {len(deploy_files)} files; itch.io max is {MAX_FILES}")
     total = 0
     for f in deploy_files:
-        rel = str(f)
+        rel = os.path.relpath(f, root).replace(os.sep, "/")
         if len(rel) > MAX_PATH:
             errors.append(f"path exceeds {MAX_PATH} chars: {rel}")
         if f.exists():
