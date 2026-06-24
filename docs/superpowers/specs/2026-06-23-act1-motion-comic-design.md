@@ -187,13 +187,22 @@ No framework (project norm):
 
 ---
 
-## 10. Phasing
+## 10. Phasing — Phase 1 = full vertical slice (S1 narration included)
 
-- **Phase 1:** manifest build + frame optimization + prose beat-anchoring + `comic-engine.js`
-  + `comic.css` + responsive mobile + **Read** and **Read + Atmosphere** modes + the switcher
-  UI (with Narrated present but disabled/greyed) + validation.
-- **Phase 2:** **Narrated** mode — transcode the video project's `_narr/*_mixed.wav` per beat,
-  wire `mode-controller.js` playback, enable section-by-section as audio lands (S1 first).
+Phase 1 builds the **complete path through every layer** so the riskiest integration
+(scroll-synced multi-voice narration + ducking) is proven early on real audio, not deferred.
+
+- **Phase 1 (vertical slice):**
+  - manifest build + sprite-strip packing + prose beat-anchoring
+  - `comic-engine.js` (panel injection + scroll animation) + `comic.css` + responsive mobile
+  - **all three modes** working: Read, Read + Atmosphere, and **Narrated** — including
+    `mode-controller.js` audio playback (scroll-synced clip start, atmosphere ducking,
+    narrator vs. per-character voice routing through the Howler bus)
+  - **narration populated for section S1 only** (transcode S1 `_narr/*_mixed.wav`); beats
+    marked `pending` (S2…V) fall back to Atmosphere silently in Narrated mode
+  - vendored Three.js, validation, itch packaging step
+- **Phase 2 (data fill, no new code):** transcode + commit narration for sections S2…V as the
+  video project produces them; each lands by dropping audio files + flipping `pending`→`ready`.
 - **Future:** Acts II/III become data-only once their beat/dialogue/narration metadata exists;
   optional text-hidden "comic-only" mode (would reintroduce caption distillation + trigger
   re-mapping).
