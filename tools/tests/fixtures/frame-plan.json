@@ -1,0 +1,5 @@
+{"title":"x","frames":[
+ {"global_frame":1,"beat_order":1,"frame_in_beat":1,"role":"establish","section":"I","beat":"headache_studio","pacing_role":"cut-busy","target_filename":"0001 - establish - headache_studio.jpg"},
+ {"global_frame":2,"beat_order":1,"frame_in_beat":2,"role":"anchor-prop","section":"I","beat":"headache_studio","pacing_role":"cut-busy","target_filename":"0002 - anchor-prop - headache_studio.jpg"},
+ {"global_frame":3,"beat_order":2,"frame_in_beat":1,"role":"establishing-empty-road","section":"I","beat":"section_break_I","pacing_role":"hold-long","target_filename":"0145 - establishing-empty-road - section_break_I.jpg"}
+]}
