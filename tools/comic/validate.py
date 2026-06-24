@@ -26,7 +26,9 @@ def validate(manifest, strips_dir, deploy_files, root):
             if "rect" not in panel:
                 errors.append(f"panel {panel.get('file')} in '{b.get('beat')}' missing rect")
         strip = b.get("strip")
-        if not strip or not (Path(strips_dir) / f"{slug}.webp").exists():
+        if not strip or not strip.endswith(f"/{slug}.webp"):
+            errors.append(f"beat '{b.get('beat')}' strip path does not match slug: {strip}")
+        elif not (Path(strips_dir) / f"{slug}.webp").exists():
             errors.append(f"beat '{b.get('beat')}' strip file missing: {strip}")
 
     if len(deploy_files) > MAX_FILES:
