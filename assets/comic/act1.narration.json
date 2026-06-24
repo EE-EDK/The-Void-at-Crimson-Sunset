@@ -1,0 +1,231 @@
+{
+  "shots": [
+    {
+      "shot": "S1-01",
+      "beats": [
+        "headache_studio",
+        "jen_voice"
+      ],
+      "audio": "assets/comic/narration/act1/S1-01.mp3",
+      "status": "ready"
+    },
+    {
+      "shot": "S1-02",
+      "beats": [
+        "therapist"
+      ],
+      "audio": "assets/comic/narration/act1/S1-02.mp3",
+      "status": "ready"
+    },
+    {
+      "shot": "S1-03",
+      "beats": [
+        "therapist",
+        "coordinates_write"
+      ],
+      "audio": "assets/comic/narration/act1/S1-03.mp3",
+      "status": "ready"
+    },
+    {
+      "shot": "S1-04",
+      "beats": [
+        "depart_east"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-05",
+      "beats": [
+        "pre_dead_land",
+        "peripheral_shift"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-06",
+      "beats": [
+        "kcrm_radio"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-07",
+      "beats": [
+        "viola_quarter_tone",
+        "world_shift_entry"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-08",
+      "beats": [
+        "crimson_bleed"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-09",
+      "beats": [
+        "mirror_pupils"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-10",
+      "beats": [
+        "music_stops"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-11",
+      "beats": [
+        "seekers_word"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-12",
+      "beats": [
+        "memory_gap"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-13",
+      "beats": [
+        "phone_kelly"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-14",
+      "beats": [
+        "birthday_too_perfect"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-15",
+      "beats": [
+        "king_quote"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-16",
+      "beats": [
+        "drive_on"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-17",
+      "beats": [
+        "approach_basin"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-18",
+      "beats": [
+        "arrival_dusk"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-19",
+      "beats": [
+        "jen_echo_drive",
+        "sinus_ache"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-20",
+      "beats": [
+        "i_know_piece"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-21",
+      "beats": [
+        "berklee_past"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-22",
+      "beats": [
+        "coordinates_confirm"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-23",
+      "beats": [
+        "and_then_what"
+      ],
+      "audio": null,
+      "status": "pending"
+    },
+    {
+      "shot": "S1-24",
+      "beats": [
+        "section_break_I"
+      ],
+      "audio": null,
+      "status": "pending"
+    }
+  ],
+  "beat_to_shot": {
+    "headache_studio": "S1-01",
+    "jen_voice": "S1-01",
+    "therapist": "S1-03",
+    "coordinates_write": "S1-03",
+    "depart_east": "S1-04",
+    "pre_dead_land": "S1-05",
+    "peripheral_shift": "S1-05",
+    "kcrm_radio": "S1-06",
+    "viola_quarter_tone": "S1-07",
+    "world_shift_entry": "S1-07",
+    "crimson_bleed": "S1-08",
+    "mirror_pupils": "S1-09",
+    "music_stops": "S1-10",
+    "seekers_word": "S1-11",
+    "memory_gap": "S1-12",
+    "phone_kelly": "S1-13",
+    "birthday_too_perfect": "S1-14",
+    "king_quote": "S1-15",
+    "drive_on": "S1-16",
+    "approach_basin": "S1-17",
+    "arrival_dusk": "S1-18",
+    "jen_echo_drive": "S1-19",
+    "sinus_ache": "S1-19",
+    "i_know_piece": "S1-20",
+    "berklee_past": "S1-21",
+    "coordinates_confirm": "S1-22",
+    "and_then_what": "S1-23",
+    "section_break_I": "S1-24"
+  }
+}
