@@ -21,3 +21,15 @@ def test_zip_has_index_at_root(tmp_path):
     with zipfile.ZipFile(out) as z:
         assert "index.html" in z.namelist()
         assert not any(n.startswith("site/") for n in z.namelist())
+
+
+def test_aborts_on_invalid_manifest(tmp_path):
+    root = tmp_path / "site"
+    (root / "assets/comic/strips/act1").mkdir(parents=True)
+    (root / "index.html").write_text("<html></html>")
+    # invalid: a beat with no panels -> validate returns an error
+    (root / "assets/comic/act1.comic.json").write_text('{"beats":[{"beat":"b","slug":"b","panels":[],"strip":"x"}]}')
+    out = tmp_path / "out.zip"
+    rc = pkg_itch.main(["--root", str(root), "--out", str(out)])
+    assert rc == 1
+    assert not out.exists()

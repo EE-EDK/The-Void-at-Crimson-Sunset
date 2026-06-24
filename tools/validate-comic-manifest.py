@@ -6,21 +6,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.comic.validate import validate
+from tools.comic.deploy import collect_deploy_files
 
 DEFAULT_MANIFEST = "assets/comic/act1.comic.json"
 DEFAULT_STRIPS = "assets/comic/strips/act1"
-# Files that ship to itch.io (relative to web root). Excludes frames-generated/ (gitignored source).
-DEPLOY_GLOBS = ["*.html", "assets/css/*.css", "assets/js/*.js", "assets/vendor/*.js",
-                "assets/comic/*.json", "assets/comic/strips/act1/*.webp",
-                "assets/comic/narration/act1/*.mp3", "assets/audio/**/*.ogg",
-                "assets/audio/**/*.mp3", "assets/video/*.mp4"]
-
-
-def collect_deploy_files(root: Path):
-    files = []
-    for g in DEPLOY_GLOBS:
-        files.extend(sorted(root.glob(g)))
-    return list(dict.fromkeys(files))
 
 
 def main(argv=None):

@@ -40,3 +40,10 @@ def test_bad_slug_is_error(tmp_path):
     m["beats"][0]["slug"] = "Bad Slug"
     errs = validate(m, tmp_path, [tmp_path / "headache_studio.webp"], tmp_path)
     assert any("slug" in e for e in errs)
+
+
+def test_real_files_under_limits_pass(tmp_path):
+    a = tmp_path / "a.txt"; a.write_bytes(b"x" * 1000)
+    b = tmp_path / "b.txt"; b.write_bytes(b"y" * 2000)
+    m = _ok_manifest(tmp_path)
+    assert validate(m, tmp_path, [a, b], tmp_path) == []

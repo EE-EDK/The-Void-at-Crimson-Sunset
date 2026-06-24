@@ -7,25 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.comic.validate import validate
-
-# Everything that ships. Relative to --root. frames-generated/ is intentionally excluded.
-INCLUDE_GLOBS = ["*.html", "assets/css/*.css", "assets/js/*.js", "assets/vendor/*.js",
-                 "assets/comic/*.json", "assets/comic/strips/act1/*.webp",
-                 "assets/comic/narration/act1/*.mp3", "assets/audio/**/*",
-                 "assets/video/*.mp4", "Media/*.wav"]
-
-
-def _collect(root: Path):
-    files = []
-    for g in INCLUDE_GLOBS:
-        files.extend(p for p in root.glob(g) if p.is_file())
-    # de-dup, stable order
-    seen, out = set(), []
-    for p in files:
-        if p not in seen:
-            seen.add(p)
-            out.append(p)
-    return out
+from tools.comic.deploy import collect_deploy_files
 
 
 def main(argv=None):
@@ -38,7 +20,7 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     root = Path(args.root)
-    files = _collect(root)
+    files = collect_deploy_files(root)
 
     if not args.skip_validate:
         manifest = json.loads((root / args.manifest).read_text(encoding="utf-8"))
