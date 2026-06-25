@@ -1,6 +1,8 @@
+import re
+
 from tools.comic.anchor import (
     normalize, anchor_text, annotate_html,
-    strip_anchors, assign_paragraphs, distribute_anchors,
+    strip_anchors, assign_paragraphs, distribute_anchors, apply_alignment,
 )
 
 
@@ -70,6 +72,23 @@ def test_assign_paragraphs_honors_pin():
     a = assign_paragraphs(4, 8, {2: 6})
     assert a[2] == 6
     assert a == sorted(a) and len(set(a)) == 4
+
+
+def test_apply_alignment_places_beats_at_mapped_paragraphs():
+    html = "<article>" + "".join(f"<p>p{i}</p>" for i in range(6)) + "</article>"
+    beats = [{"beat": "a"}, {"beat": "b"}, {"beat": "c"}]
+    out, n = apply_alignment(html, beats, {"a": 1, "b": 3, "c": 5})
+    assert n == 3
+    assert out.index('data-beat="a"') < out.index('data-beat="b"') < out.index('data-beat="c"')
+    # 'b' lands on paragraph index 3 (text p3)
+    assert re.search(r'data-beat="b"[^>]*>p3<', out)
+
+
+def test_apply_alignment_skips_collisions_and_out_of_range():
+    html = "<article><p>p0</p><p>p1</p></article>"
+    beats = [{"beat": "a"}, {"beat": "b"}, {"beat": "c"}]
+    out, n = apply_alignment(html, beats, {"a": 0, "b": 0, "c": 99})  # b collides, c out of range
+    assert n == 1
 
 
 def test_distribute_anchors_covers_every_beat():

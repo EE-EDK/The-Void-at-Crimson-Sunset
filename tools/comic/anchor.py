@@ -70,6 +70,27 @@ def strip_anchors(html):
     return re.sub(r'\s+data-beat="[^"]*"', "", html)
 
 
+def apply_alignment(html, beats, mapping):
+    """Place data-beat anchors at explicit paragraph indices from a curated
+    `mapping` ({beat_name: paragraph_index}). One beat per paragraph (a beat whose
+    paragraph is taken or out of range is skipped). Returns (html, anchored_count)."""
+    html = strip_anchors(html)
+    paragraphs = list(_P.finditer(html))
+    P = len(paragraphs)
+    insertions = {}
+    for b in beats:
+        pi = mapping.get(b["beat"])
+        if pi is None or not (0 <= pi < P) or pi in insertions:
+            continue
+        insertions[pi] = b["beat"]
+    for i in sorted(insertions, reverse=True):
+        m = paragraphs[i]
+        html = (html[:m.start()]
+                + f'<p data-beat="{insertions[i]}"{m.group(1)}>{m.group(2)}</p>'
+                + html[m.end():])
+    return html, len(insertions)
+
+
 def _text_pins(norm_paras, beats):
     """Forward-cursor text matches -> {beat_index: paragraph_index} (monotonic)."""
     pins = {}
