@@ -1,99 +1,58 @@
-/* Comic engine: one uniform image per beat, tied to a highlighted story sentence.
-   - No caption boxes (the body prose is the text; no duplicates).
-   - Each image is anchored after its [data-beat] paragraph; the sentence it
-     illustrates is wrapped in <span class="comic-tie"> and lights up + is
-     narrated when the image scrolls into view.
-   - Images lazy-load (background set just before they enter view) so a large
-     number of beats stays performant. */
+/* Comic engine: one best-fit frame per paragraph.
+   - Each prose paragraph carries data-pidx="<n>"; act1.panelmap.json maps that
+     index to a specific beat + panel (chosen by multi-agent caption matching).
+   - The frame is drawn from the beat's sprite strip via background-position-y.
+   - No caption boxes: the paragraph IS the text. The paragraph lights while its
+     image is in view, and images lazy-load just before entering the viewport. */
 (function () {
   'use strict';
 
   var MANIFEST_URL = './assets/comic/act1.comic.json';
-  var ROLE_PRIORITY = ['establish', 'establishing', 'character-close', 'reveal', 'resolution'];
+  var PANELMAP_URL = './assets/comic/act1.panelmap.json';
 
-  function bgPosY(beat, rect) {
+  function bgPosY(strip_h, rect) {
     // strip is full-width; show one 16:9 cell by shifting vertically.
-    return beat.strip_h > rect.h ? (rect.y / (beat.strip_h - rect.h)) * 100 : 0;
+    return strip_h > rect.h ? (rect.y / (strip_h - rect.h)) * 100 : 0;
   }
 
-  function representativePanel(beat) {
-    // one focused image per beat: prefer an establishing/character shot, else first.
-    for (var i = 0; i < ROLE_PRIORITY.length; i++) {
-      for (var j = 0; j < beat.panels.length; j++) {
-        if ((beat.panels[j].role || '').indexOf(ROLE_PRIORITY[i]) === 0) { return beat.panels[j]; }
-      }
-    }
-    return beat.panels[0];
+  function indexManifest(manifest) {
+    var beats = new Map();
+    manifest.beats.forEach(function (beat) {
+      var byFile = new Map();
+      (beat.panels || []).forEach(function (p) { byFile.set(p.file, p); });
+      beats.set(beat.beat, { beat: beat, panels: byFile });
+    });
+    return beats;
   }
 
-  function buildFigure(beat) {
-    var p = representativePanel(beat);
+  function buildFigure(beat, panel, alt) {
     var fig = document.createElement('figure');
     fig.className = 'comic-figure' + (beat.is_section_break ? ' is-divider' : '');
     fig.setAttribute('role', 'img');
-    fig.setAttribute('aria-label', (p && p.alt) || beat.beat);
-    return { fig: fig, bg: 'url("./' + beat.strip + '")', posy: bgPosY(beat, p.rect) + '%' };
+    fig.setAttribute('aria-label', alt || panel.alt || beat.beat);
+    return {
+      fig: fig,
+      bg: 'url("./' + beat.strip + '")',
+      posy: bgPosY(beat.strip_h, panel.rect) + '%'
+    };
   }
 
-  function tieLine(beat) {
-    var d = (beat.dialogue || [])[0];
-    return d && d.line ? d.line : null;
-  }
-
-  // Wrap the sentence matching `line` inside `anchor` in <span class="comic-tie">.
-  // Returns the element to light (the span, or the anchor itself on fallback).
-  function wrapTie(anchor, line) {
-    if (!line) { return anchor; }
-    var walker = document.createTreeWalker(anchor, NodeFilter.SHOW_TEXT, null);
-    var segs = [], full = '', node;
-    while ((node = walker.nextNode())) { segs.push({ node: node, start: full.length }); full += node.nodeValue; }
-    if (!full) { return anchor; }
-
-    var hay = full.toLowerCase();
-    var probe = line.toLowerCase().replace(/\s+/g, ' ').trim().replace(/[^a-z0-9)à-ÿ]+$/, '');
-    if (probe.length < 6) { return anchor; }
-    var idx = hay.indexOf(probe);
-    if (idx < 0) { return anchor; }
-
-    var end = idx + probe.length;
-    while (end < full.length && '.!?'.indexOf(full.charAt(end)) === -1) { end++; }
-    if (end < full.length) { end++; } // include the terminator
-
-    function locate(pos) {
-      for (var k = segs.length - 1; k >= 0; k--) {
-        if (pos >= segs[k].start) { return { node: segs[k].node, offset: pos - segs[k].start }; }
-      }
-      return { node: segs[0].node, offset: 0 };
-    }
-
-    try {
-      var range = document.createRange();
-      var s = locate(idx), e = locate(end);
-      range.setStart(s.node, s.offset);
-      range.setEnd(e.node, e.offset);
-      var span = document.createElement('span');
-      span.className = 'comic-tie';
-      range.surroundContents(span); // throws if the range partially selects an element (e.g. <em>)
-      return span;
-    } catch (err) {
-      return anchor; // fall back to highlighting the whole paragraph
-    }
-  }
-
-  function render(manifest) {
-    var beatsByName = new Map();
+  function render(manifest, panelmap) {
+    var beats = indexManifest(manifest);
     var items = [];
-    manifest.beats.forEach(function (beat) {
-      beatsByName.set(beat.beat, beat);
-      var anchor = document.querySelector('[data-beat="' + beat.beat + '"]');
-      if (!anchor || !beat.panels || !beat.panels.length) { return; }
-      var tie = wrapTie(anchor, tieLine(beat));
-      var f = buildFigure(beat);
+    document.querySelectorAll('[data-pidx]').forEach(function (anchor) {
+      var entry = panelmap[anchor.getAttribute('data-pidx')];
+      if (!entry) { return; }
+      var b = beats.get(entry.beat);
+      if (!b) { return; }
+      var panel = b.panels.get(entry.file);
+      if (!panel) { return; }
+      var f = buildFigure(b.beat, panel, entry.alt);
       anchor.parentNode.insertBefore(f.fig, anchor.nextSibling);
-      items.push({ fig: f.fig, tie: tie, bg: f.bg, posy: f.posy, loaded: false });
+      items.push({ fig: f.fig, lit: anchor, bg: f.bg, posy: f.posy, loaded: false });
     });
     observe(items);
-    return beatsByName;
+    return items.length;
   }
 
   function load(it) {
@@ -118,7 +77,7 @@
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { items.forEach(function (it) { load(it); it.fig.classList.add('is-visible'); }); return; }
 
-    // Viewer: fade the image in and light its tied sentence while in view.
+    // Viewer: fade the image in and light its paragraph while in view.
     var viewer = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         var it = byFig.get(e.target);
@@ -126,19 +85,21 @@
         if (e.isIntersecting) {
           load(it);
           it.fig.classList.add('is-visible');
-          if (it.tie && it.tie.classList) { it.tie.classList.add('lit'); }
-        } else if (it.tie && it.tie.classList) {
-          it.tie.classList.remove('lit');
+          if (it.lit && it.lit.classList) { it.lit.classList.add('lit'); }
+        } else if (it.lit && it.lit.classList) {
+          it.lit.classList.remove('lit');
         }
       });
     }, { rootMargin: '0px 0px -30% 0px', threshold: 0.25 });
     items.forEach(function (it) { viewer.observe(it.fig); });
   }
 
-  var ready = fetch(MANIFEST_URL)
-    .then(function (r) { return r.json(); })
-    .then(function (m) { return { beatsByName: render(m) }; })
-    .catch(function (err) { console.error('ComicEngine failed:', err); return { beatsByName: new Map() }; });
+  var ready = Promise.all([
+    fetch(MANIFEST_URL).then(function (r) { return r.json(); }),
+    fetch(PANELMAP_URL).then(function (r) { return r.json(); })
+  ])
+    .then(function (res) { return { count: render(res[0], res[1]) }; })
+    .catch(function (err) { console.error('ComicEngine failed:', err); return { count: 0 }; });
 
   window.ComicEngine = { ready: ready };
 })();

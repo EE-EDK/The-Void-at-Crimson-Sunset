@@ -37,3 +37,10 @@ __pycache__/
 tools/**/__pycache__/
 .pytest_cache/
 dist/
+# Scratch / generated intermediates (not runtime assets) [added 2026-07-29]
+# 1007 generated intermediate frames (build pipeline output):
+frames-generated/
+# editor backups (e.g. act1-fifth-harmonic.html.bak):
+*.bak
+# scratch images from panel/VFX experiments:
+/temp_*.jpg

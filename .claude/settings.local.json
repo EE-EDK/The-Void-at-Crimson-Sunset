@@ -15,7 +15,9 @@
       "Bash(cp \"C:/Users/edk7c/ENGINEERING-PROJECTS/Web-Projects/Void at Crimson Sunset/The-Void-at-Crimson-Sunset/Temp-TBSHT/audio-compressed/extras/\"* \"C:/Users/edk7c/ENGINEERING-PROJECTS/Web-Projects/Void at Crimson Sunset/The-Void-at-Crimson-Sunset/assets/audio/extras/\")",
       "Read(//c/Users/edk7c/ENGINEERING-PROJECTS/Web-Projects/**)",
       "Bash(mv \"Void at Crimson Sunset\" \"Void is Crimson\")",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "Bash(python -c \"import json; c=json.load\\(open\\('para-candidates.json'\\)\\); print\\('paras:',len\\(c\\)\\); n=[len\\(p['frames']\\) for p in c]; print\\('total frame-evals:',sum\\(n\\),'avg:',round\\(sum\\(n\\)/len\\(n\\),1\\),'max:',max\\(n\\),'min:',min\\(n\\)\\); empties=sum\\(1 for x in n if x==0\\); print\\('paras with 0 candidates:',empties\\)\")",
+      "Bash(python tools/anchor-panels.py)"
     ]
   }
 }

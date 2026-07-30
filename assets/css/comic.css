@@ -18,11 +18,11 @@
 .comic-figure.is-visible { opacity: 1; transform: none; }
 .comic-figure.is-divider { width: min(900px, 96%); filter: saturate(1.1) contrast(1.05); }
 
-/* The story sentence an image illustrates — highlights when the image is in view. */
+/* The paragraph an image illustrates — warms while its image is in view. */
 .comic-tie { transition: color 600ms ease, text-shadow 600ms ease; }
 .comic-tie.lit { color: #ff5a5a; text-shadow: 0 0 14px rgba(200, 0, 0, 0.55); }
-/* Paragraph-level fallback when a sentence can't be cleanly wrapped. */
-p.comic-tie.lit, [data-beat].lit { color: #f1b6b6; }
+[data-pidx] { transition: color 600ms ease, text-shadow 600ms ease; }
+[data-pidx].lit { color: #f1b6b6; text-shadow: 0 0 12px rgba(200, 0, 0, 0.30); }
 
 .comic-mode-switch {
   position: fixed; top: 12px; right: 12px; z-index: 50;
