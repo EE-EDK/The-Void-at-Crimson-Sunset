@@ -833,3 +833,62 @@ body.fade-out-to-next {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.002) translateY(0.5px); }
 }
+
+/* ── Mobile readability pass 2026-08-06 ──
+   .horror-whisper::after (the hover-revealed "hidden message" above a
+   paragraph) is `white-space: nowrap` with only `left: 0` — unbounded on the
+   right. Every whisper string on every act is short enough to fit on one
+   line inside its paragraph except Act III's "but in the dark between the
+   stars, something is still hungry" (60 chars, more than double any other).
+   At 360px wide that single nowrap span measures ~382px, which — because
+   it's position:absolute inside a position:relative ancestor, not fixed —
+   drags the real mobile layout viewport out to match it (body's
+   overflow-x:hidden does not stop this; it's the documented mobile-viewport
+   "expand to fit overflowing content" behavior). The effect ripples
+   everywhere: every 100vw/100%-sized fixed layer (WebGL canvas, vignette,
+   grain, the audio-prompt corner widget) on that one page then renders ~20%
+   too big, and the page gains real horizontal scroll. Bounding the pseudo-
+   element to its paragraph's width and letting it wrap fixes the one long
+   whisper (it becomes two short lines instead of one long overflowing one)
+   without touching the visual for every other whisper on the site, which
+   was already short enough to render identically on one line either way. */
+@media (max-width: 480px) {
+    .horror-whisper::after {
+        right: 0;
+        white-space: normal;
+        line-height: 1.3;
+    }
+
+    .horror-audio-sub {
+        font-size: 12px; /* was 11px — trivial bump for the last sub-12px rule */
+    }
+}
+
+/* act2/act3 reuse index.html's `.act-link` class for the "continue to the
+   next act" CTA at the end of the chapter, but that styling only exists in
+   index.html's own inline <style> block — on every other page it renders as
+   a bare, unstyled anchor (~17px tall, well under any usable tap target).
+   Scoped to .next-act-navigation so it can never collide with index.html's
+   own (differently laid out) act-link rules for its landing-page nav. Uses
+   the --primary/--accent theme vars (not index.html's hardcoded crimson) so
+   the button follows each act's own palette — red on I/II, blue on III via
+   act3-custom.css's overrides — instead of a fixed color fighting the
+   page's theme. Not media-queried: this is a missing style at every width,
+   not a mobile-only tightening. */
+.next-act-navigation .act-link {
+    display: inline-block;
+    font-size: 1rem;
+    color: var(--accent-color);
+    text-decoration: none;
+    border: 1px solid var(--primary-color);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.85rem 1.75rem;
+    transition: all 0.4s ease;
+}
+
+.next-act-navigation .act-link:hover,
+.next-act-navigation .act-link:focus {
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-light);
+}
