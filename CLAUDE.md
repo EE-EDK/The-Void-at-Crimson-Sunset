@@ -2,7 +2,11 @@
 
 ## Project Overview
 
-"The Void is Crimson" — an interactive cosmic horror web experience with a three-act narrative structure. Pure static site, no build tools.
+"The Void is Crimson" — an interactive cosmic horror web experience with a three-act narrative structure. The playable web experience is a pure static site, no build tools. A separate Python toolchain (`tools/`) builds and validates a comic/itch.io export — see "Comic / itch.io export pipeline" below.
+
+### State as of 2026-08-27
+
+25 commits landed 2026-05-02 through 2026-08-14 (`git log --since=2026-05-02 --format="%h %ad %s" --date=short`). The bulk (2026-06-23/24) built the comic/itch.io export pipeline end to end: manifest build from generation-repo metadata, per-beat WebP strip packing, manifest + itch.io-constraint validation, and itch.io zip packaging — plus an Act I motion-comic design spec in `docs/`. Also landed: a mobile viewport-inflation fix so the acts read correctly on a phone (`1e0e1a5`, 2026-08-06), and the doc-standard remediation that added `AGENTS.md`/`GROK.md`/`.grok` load rule (`d5d346d`, 2026-08-14).
 
 ## Project Structure
 
@@ -30,8 +34,12 @@ assets/
     extras/                         # 10 custom sounds (OGG + MP3)
   video/
     Horror-Finale.mp4
+  comic/                             # Comic pipeline output: act1.comic.json manifest, strips/, narration/
 docs/                               # Technical docs, guides, audits, archive/
 _development/                       # Dev sources, howler-Javascript, Temp tests
+tools/                               # Comic/itch.io export pipeline (Python + pytest) — see below
+frames-generated/                   # Source comic frame images, keyed by beat (input to tools/pack-comic-strips.py)
+dist/                               # itch.io zip build output (gitignored — see .gitignore)
 ```
 
 ## Tech Stack
@@ -44,7 +52,26 @@ _development/                       # Dev sources, howler-Javascript, Temp tests
 
 ## Development
 
-No build step. Edit files directly and test in browser. No test framework — manual browser testing.
+The playable web experience has no build step: edit files directly and test in browser, manual testing only. The comic/itch.io export side has its own Python build+test toolchain — see "Comic / itch.io export pipeline" below.
+
+## Comic / itch.io export pipeline
+
+A Python toolchain in `tools/` builds a comic-strip export of Act I and packages it for itch.io. Built 2026-06-23/24 (see "State as of 2026-08-27"). Tests run with `pytest` from the project root (`pytest.ini` points `testpaths` at `tools/tests`); **21/21 pass** (verified 2026-08-27).
+
+CLI scripts (`tools/*.py`), run in pipeline order:
+- `build-comic-manifest.py` — build `assets/comic/act1.comic.json` from generation-repo metadata.
+- `pack-comic-strips.py` — pack frames into per-beat WebP strips and augment the manifest in place.
+- `validate-comic-manifest.py` — validate manifest + the set of files that would ship to itch.io.
+- `package-itch.py` — assemble an itch.io-ready zip (index.html at root) after validation.
+
+Supporting modules (`tools/comic/`):
+- `manifest.py` — join frame-plan + dialogue + story-index into a structural comic manifest.
+- `slugs.py` — slug helpers for itch.io-safe, case-stable asset names.
+- `strips.py` — pack a beat's frames into one vertical WebP sprite strip.
+- `validate.py` — validate a packed comic manifest + itch.io deploy constraints.
+- `deploy.py` — canonical list of files that ship to itch.io (also the set size/count-validated).
+
+Tests live in `tools/tests/` (`test_build_cli.py`, `test_manifest.py`, `test_package_itch.py`, `test_slugs.py`, `test_strips.py`, `test_validate.py`), one file per module above plus the CLI entry points.
 
 ### Deployment (Self-Host)
 
@@ -77,16 +104,7 @@ After pushing changes to GitHub:
 - Audio samples by Ulrich Wehner licensed CC-BY 4.0, attribution required in page footer
 
 ## TODO
-- [ ] No test framework — manual browser testing
-- [ ] Maintain the horror/dark aesthetic in all visual updates
-- [ ] Vanilla CSS only — no frameworks
-- [ ] Three.js r160 for all 3D/WebGL effects
-- [ ] IIFE pattern for JS scope isolation, `'use strict'`
-- [ ] Verify asset paths after any structural changes
-- [ ] Pixel ratio capped at 1.5x for WebGL performance
-- [ ] Adaptive particle counts (1000 mobile, 2000 desktop)
-- [ ] Script load order: howler.min.js -> horror-samples.js -> horror-effects.js (all deferred)
-- [ ] Audio samples by Ulrich Wehner licensed CC-BY 4.0, attribution required in page footer
+- [ ] No open items recorded (section rebuilt 2026-08-27; the previous list duplicated the Development and Coding Standards sections verbatim).
 
 ## graphify
 
