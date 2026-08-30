@@ -22,4 +22,4 @@
 
 ## Doc Precedence
 
-`GROK.md` → `AGENTS.md` → `CLAUDE.md` → `GEMINI.md` (same tier). Root workspace mandates (`ENGINEERING-PROJECTS/AGENTS.md`) and category mandates (`ACTIVE-PROJECTS/web/CLAUDE.md`) win over this file. Do not import sibling-project context — `ai-video-photo/The Void is Crimson` is an unrelated codebase despite the shared name.
+`GROK.md` → `AGENTS.md` → `CLAUDE.md` (same tier). Root workspace mandates (`ENGINEERING-PROJECTS/AGENTS.md`) and category mandates (`ACTIVE-PROJECTS/web/CLAUDE.md`) win over this file. Do not import sibling-project context — `ai-video-photo/The Void is Crimson` is an unrelated codebase despite the shared name.
