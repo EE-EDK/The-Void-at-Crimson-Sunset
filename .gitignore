@@ -37,3 +37,7 @@ __pycache__/
 tools/**/__pycache__/
 .pytest_cache/
 dist/
+# Generated frames and scratch stills
+frames-generated/
+temp_*.jpg
+*.bak
